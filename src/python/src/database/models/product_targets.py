@@ -11,7 +11,7 @@ class ProductTargets(Base):
     target_url = Column("target_url", String(255), unique=True, nullable=False)
     external_id = Column('external_id', String(255), unique=True, nullable=False)
     category = Column('category', String(255))
-    position = Column('position', INTEGER(unsigned=True))
+    position = Column('position', INTEGER(unsigned=True), server_defailt=text("0"))
     created_at = Column("created_at", TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"),)
     updated_at = Column(
         "updated_at",
