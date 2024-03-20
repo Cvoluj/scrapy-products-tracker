@@ -4,8 +4,8 @@ from sqlalchemy.dialects.mysql import DECIMAL, MEDIUMINT, TIMESTAMP, BIGINT
 from database.models import Base
 
 
-class Products(Base):
-    __tablename__ = 'products'
+class ProductHistory(Base):
+    __tablename__ = 'product_history'
 
     id = Column("id", BIGINT(unsigned=True), primary_key=True, autoincrement=True)
     product_external_id = Column(

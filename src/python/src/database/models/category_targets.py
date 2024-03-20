@@ -9,7 +9,7 @@ class CategoryTargets(Base):
 
     id = Column("id", BIGINT(unsigned=True), primary_key=True, autoincrement=True)
     target_url = Column("target_url", String(255), unique=True, nullable=False)
-    status = status = Column(
+    status = Column(
         "status",
         MEDIUMINT(unsigned=True),
         index=True,
