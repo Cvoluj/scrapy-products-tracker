@@ -4,13 +4,12 @@ from rmq.utils import TaskStatusCodes
 from rmq.commands import Producer
 from sqlalchemy import select, update
 
-# TODO: replace with actual Target model
-from database.models import Target
+from database.models import CategoryTargets
 
 
 """
 Example of calling this command:
-scrapy produce_from_csv --file=csv_file.csv --task_queue=task --reply_to_queue=reply --chunk_size=500 --mode=worker
+scrapy produce_category --file=csv_file.csv --task_queue=task --reply_to_queue=reply --chunk_size=500 --mode=worker
 """
 class ProduceCategory(Producer):
     def __init__(self):
@@ -38,7 +37,7 @@ class ProduceCategory(Producer):
     
     def execute(self, _args: list[str], opts: Namespace):
         self.init_csv_file_name(opts)
-        self.csv_database = CSVDatabase(self.csv_file)
+        self.csv_database = CSVDatabase(self.csv_file, CategoryTargets)
         self.csv_database.read_csv_and_insert()
         super().execute(_args, opts)
     
@@ -50,9 +49,9 @@ class ProduceCategory(Producer):
         ).order_by(DBModel.id.asc()).limit(chunk_size)
         return stmt
         """
-        stmt = select(Target).where(
-            Target.status == TaskStatusCodes.NOT_PROCESSED.value,
-        ).order_by(Target.id.asc()).limit(chunk_size)
+        stmt = select(CategoryTargets).where(
+            CategoryTargets.status == TaskStatusCodes.NOT_PROCESSED.value,
+        ).order_by(CategoryTargets.id.asc()).limit(chunk_size)
         return stmt
     
     def build_task_update_stmt(self, db_task, status):
@@ -60,4 +59,4 @@ class ProduceCategory(Producer):
 
         return update(DBModel).where(DBModel.id == db_task['id']).values({'status': status})
         """
-        return update(Target).where(Target.id == db_task['id']).values({'status': status})
+        return update(CategoryTargets).where(CategoryTargets.id == db_task['id']).values({'status': status})

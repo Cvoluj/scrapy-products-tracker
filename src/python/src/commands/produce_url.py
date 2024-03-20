@@ -1,6 +1,4 @@
-from rmq.commands import Producer
 from argparse import Namespace
-from scrapy.commands import ScrapyCommand
 
 from utils.read_csv import CSVDatabase
 
@@ -8,8 +6,7 @@ from rmq.utils import TaskStatusCodes
 from rmq.commands import Producer
 
 from sqlalchemy import select, update
-from database.models import Target
-from commands.base import BaseCommand
+from database.models import ProductTargets
 
 """
 Example of calling this command:
@@ -42,7 +39,7 @@ class ProduceUrl(Producer):
     
     def execute(self, _args: list[str], opts: Namespace):
         self.init_csv_file_name(opts)
-        self.csv_database = CSVDatabase(self.csv_file)
+        self.csv_database = CSVDatabase(self.csv_file, ProductTargets)
         self.csv_database.read_csv_and_insert()
         super().execute(_args, opts)
     
@@ -54,9 +51,9 @@ class ProduceUrl(Producer):
         ).order_by(DBModel.id.asc()).limit(chunk_size)
         return stmt
         """
-        stmt = select(Target).where(
-            Target.status == TaskStatusCodes.NOT_PROCESSED.value,
-        ).order_by(Target.id.asc()).limit(chunk_size)
+        stmt = select(ProductTargets).where(
+            ProductTargets.status == TaskStatusCodes.NOT_PROCESSED.value,
+        ).order_by(ProductTargets.id.asc()).limit(chunk_size)
         return stmt
     
     def build_task_update_stmt(self, db_task, status):
@@ -64,4 +61,4 @@ class ProduceUrl(Producer):
 
         return update(DBModel).where(DBModel.id == db_task['id']).values({'status': status})
         """
-        return update(Target).where(Target.id == db_task['id']).values({'status': status})
+        return update(ProductTargets).where(ProductTargets.id == db_task['id']).values({'status': status})

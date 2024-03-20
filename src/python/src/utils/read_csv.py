@@ -4,12 +4,11 @@ from rmq.utils.sql_expressions import compile_expression
 from twisted.internet import defer
 from twisted.internet import reactor
 from sqlalchemy import insert
-from database.models import Target          # TODO: replace with actual Target model
-# from items.url_item import TargetItem     # same
 
 
-class CSVDatabase():
-    def __init__(self, csv_file) -> None:
+class CSVDatabase:
+    def __init__(self, csv_file, model) -> None:
+        self.model = model
         self.conn = get_db()
         self.csv_file = csv_file
 
@@ -26,7 +25,7 @@ class CSVDatabase():
     @defer.inlineCallbacks
     def process_row(self, row):
         try:
-            query = insert(Target).prefix_with('IGNORE').values(url=row)
+            query = insert(self.model).prefix_with('IGNORE').values(url=row)
             yield self.conn.runQuery(*compile_expression(query))
         except Exception as e:
             logging.error("Error inserting item: %s", e)
