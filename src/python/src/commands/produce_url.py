@@ -1,48 +1,25 @@
-from argparse import Namespace
-
-from utils.read_csv import CSVDatabase
-
-from rmq.utils import TaskStatusCodes
-from rmq.commands import Producer
-
 from sqlalchemy import select, update
+from rmq.utils import TaskStatusCodes
+
+from commands import CSVProducer
 from database.models import ProductTargets
+
 
 """
 Example of calling this command:
-scrapy produce_url --file=csv_file.csv --task_queue=task --reply_to_queue=reply --chunk_size=500 --mode=worker
+scrapy produce_url --file=csv_file.csv --reply_to_queue=reply --chunk_size=500 --mode=worker
+
+notice, --task_queue became unnecessary, because it alreade defined in CSVProducer. But if you want you still can change it 
+
 """
+class ProduceUrl(CSVProducer):
+    model = ProductTargets
 
-class ProduceUrl(Producer):
-    def __init__(self):
-        super().__init__()
-        self.csv_file = None
+    domain_queue_map = {
+        "www.zoro.com": "zoro_task",
+        "chat.openai.com": "chat_task"
+    }
 
-    def add_options(self, parser):
-        super().add_options(parser)
-        parser.add_argument(
-            "-f",
-            "--file",
-            type=str,
-            dest="csv_file",
-            help="path to csv file",
-        )
-
-    def init_csv_file_name(self, opts: Namespace):
-        csv_file = getattr(opts, "csv_file", None)
-        if csv_file is None:
-            raise NotImplementedError(
-                "csv file name must be provided with options or override this method to return it"
-            )
-        self.csv_file = csv_file
-        return csv_file
-    
-    def execute(self, _args: list[str], opts: Namespace):
-        self.init_csv_file_name(opts)
-        self.csv_database = CSVDatabase(self.csv_file, ProductTargets)
-        self.csv_database.read_csv_and_insert()
-        super().execute(_args, opts)
-    
     def build_task_query_stmt(self, chunk_size):
         """This method must returns sqlalchemy Executable or string that represents valid raw SQL select query
 
