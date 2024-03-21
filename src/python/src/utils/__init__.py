@@ -3,4 +3,3 @@ from .logger_mixin import LoggerMixin
 from .mysql_connection_string import mysql_connection_string
 from .file_saver import FileSaver
 from .read_csv import CSVDatabase
-from .parse_domain import parse_domain

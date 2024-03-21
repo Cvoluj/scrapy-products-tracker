@@ -3,7 +3,7 @@ from argparse import Namespace
 from sqlalchemy import Table
 
 from rmq.commands import Producer
-from utils import CSVDatabase, parse_domain
+from utils import CSVDatabase
 
 
 class CSVProducer(Producer):
@@ -58,7 +58,7 @@ class CSVProducer(Producer):
         super().execute(_args, opts)
     
     def get_queue_name(self, msg_body):
-        return self.domain_queue_map.get(parse_domain(msg_body.get("url")), self.task_queue_name)
+        return self.domain_queue_map.get(msg_body.get('domain'), self.task_queue_name)
 
     def _send_message(self, msg_body):
         if not isinstance(msg_body, dict):
