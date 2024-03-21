@@ -9,7 +9,7 @@ class ProductHistory(Base):
 
     id = Column("id", BIGINT(unsigned=True), primary_key=True, autoincrement=True)
     product_external_id = Column(
-        'product_external_id', String(255), ForeignKey('product_targets.external_id'), nullable=False
+        'product_external_id', String(768), ForeignKey('product_targets.external_id'), nullable=False
     )
     regular_price = Column('regular_price', DECIMAL(20, 2))
     current_price = Column('current_price', DECIMAL(20, 2))

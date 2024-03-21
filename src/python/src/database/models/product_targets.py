@@ -8,10 +8,12 @@ class ProductTargets(Base):
     __tablename__ = 'product_targets'
 
     id = Column("id", BIGINT(unsigned=True), primary_key=True, autoincrement=True)
-    url = Column("url", String(255), unique=True, nullable=False)
-    external_id = Column('external_id', String(255), unique=True, nullable=False)
+    url = Column("url", String(768), unique=True, nullable=False)
+    external_id = Column('external_id', String(768), unique=True, nullable=False)
+    domain = Column('domain', String(255), nullable=False)
     category = Column('category', String(255))
     title = Column('title', String(255), unique=False, nullable=False)
+    description = Column('description', TEXT())
     brand = Column('brand', String(255))
     image_url = Column('image_url', String(255))
     image_file = Column('image_file', String(255))
