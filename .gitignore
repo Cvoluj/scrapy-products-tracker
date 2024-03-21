@@ -10,3 +10,4 @@ ecosystem.json
 logs/*.log
 build/
 proxy_list.json
+env.py

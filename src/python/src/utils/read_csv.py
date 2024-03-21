@@ -1,15 +1,18 @@
 import logging, csv
-from database.connection import get_db
-from rmq.utils.sql_expressions import compile_expression
+from urllib.parse import urlparse
 from twisted.internet import defer
-from twisted.internet import reactor
-from sqlalchemy import insert
-from database.models import Target          # TODO: replace with actual Target model
-# from items.url_item import TargetItem     # same
+from sqlalchemy import Table
+from sqlalchemy.dialects.mysql import insert, Insert
+from rmq.utils.sql_expressions import compile_expression
+from rmq.utils import TaskStatusCodes
+
+from database.connection import get_db
+from database.models import ProductTargets
 
 
-class CSVDatabase():
-    def __init__(self, csv_file) -> None:
+class CSVDatabase:
+    def __init__(self, csv_file, model: Table) -> None:
+        self.model = model
         self.conn = get_db()
         self.csv_file = csv_file
 
@@ -19,21 +22,36 @@ class CSVDatabase():
             reader = csv.reader(file)
             next(reader)
             for row in reader:
-                yield self.process_row(row[0])
+                domain = self.parse_domain(row[0])
+                yield self.process_row(row[0], domain)
 
         self.conn.close()
         
     @defer.inlineCallbacks
-    def process_row(self, row):
+    def process_row(self, row, domain):
         try:
-            query = insert(Target).prefix_with('IGNORE').values(url=row)
-            yield self.conn.runQuery(*compile_expression(query))
+            values = {
+                "url": row,
+                "domain": domain,
+            }
+            if type(self.model) is ProductTargets:
+                values['external_id'] = row
+                
+            stmt: Insert = insert(self.model)
+            stmt = stmt.on_duplicate_key_update({
+                'status': TaskStatusCodes.NOT_PROCESSED
+            }).values(**values)
+
+            yield self.conn.runQuery(*compile_expression(stmt))
         except Exception as e:
             logging.error("Error inserting item: %s", e)
+    
+
+    def parse_domain(self, url):
+        return urlparse(url).netloc
 
     def run(self):
         self.read_csv_and_insert()
-        reactor.run()
 
 
 if __name__ == '__main__':
