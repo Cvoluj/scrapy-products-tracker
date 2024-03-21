@@ -5,13 +5,14 @@ from commands import CSVProducer
 from database.models import CategoryTargets
 
 
-"""
-Example of calling this command:
-scrapy produce_category --file=csv_file.csv --reply_to_queue=reply --chunk_size=500 --mode=worker
 
-notice, --task_queue became unnecessary, because it alreade defined in CSVProducer. But if you want you still can change it 
-"""
 class ProduceCategory(CSVProducer):
+    """
+    Example of calling this command:
+    scrapy produce_category --file=csv_file.csv --reply_to_queue=reply --chunk_size=500 --mode=worker
+
+    notice, --task_queue became unnecessary, because it alreade defined in CSVProducer. But if you want you still can change it 
+    """
     model = CategoryTargets
 
     domain_queue_map = {
@@ -37,4 +38,5 @@ class ProduceCategory(CSVProducer):
 
         return update(DBModel).where(DBModel.id == db_task['id']).values({'status': status})
         """
+        self.logger.warning(status)
         return update(CategoryTargets).where(CategoryTargets.id == db_task['id']).values({'status': status})
