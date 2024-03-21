@@ -38,5 +38,4 @@ class ProduceCategory(CSVProducer):
 
         return update(DBModel).where(DBModel.id == db_task['id']).values({'status': status})
         """
-        self.logger.warning(status)
         return update(CategoryTargets).where(CategoryTargets.id == db_task['id']).values({'status': status})
