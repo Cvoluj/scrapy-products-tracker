@@ -2,12 +2,12 @@ from sqlalchemy import Column, String, text, ForeignKey
 from sqlalchemy.dialects.mysql import DECIMAL, MEDIUMINT, TIMESTAMP, BIGINT, BOOLEAN, INTEGER
 
 from database.models import Base
+from .mixins import MysqlPrimaryKeyMixin
 
 
-class ProductHistory(Base):
+class ProductHistory(Base, MysqlPrimaryKeyMixin):
     __tablename__ = 'product_history'
 
-    id = Column("id", BIGINT(unsigned=True), primary_key=True, autoincrement=True)
     product_external_id = Column(
         'product_external_id', String(768), ForeignKey('product_targets.external_id'), nullable=False
     )
