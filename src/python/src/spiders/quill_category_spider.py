@@ -31,23 +31,48 @@ class QuillCategorySpider(TaskToMultipleResultsSpider):
     #                           errback=self.errback)
 
     def start_requests(self):
-        urls = ['https://www.quill.com/external-hard-drives/cbk/116139.html',
-                'https://www.quill.com/sandisk-sdssdrc-032g-g26-solid-state-drive/cbk/98183.html']
+        urls = ['https://www.quill.com/disinfectant-wipes/cbl/27739.html',
+                # 'https://www.quill.com/external-hard-drives/cbk/116139.html',
+                # 'https://www.quill.com/sandisk-sdssdrc-032g-g26-solid-state-drive/cbk/98183.html',
+                ]
         for i in urls:
             yield scrapy.Request(url=i, meta={'position': 0}, callback=self.parse)
 
     @rmq_callback
     def parse(self, response):
         item = QuillCategoryItem()
-        product_links = response.xpath(
-            '//span[contains(@class, "search-product-name-wrap")]/a[contains(@class, "blue-hover-link")]/@href').getall()
         position = response.meta['position']
 
-        for link in product_links:
+        product_list = response.xpath(
+            '//div[contains(@class, "gridView") and contains(@class, "search-product-card-wrap")]')
+
+        for product in product_list:
             position = position + 1
-            item["url"] = response.urljoin(link)
             item["position"] = position
+
+            product_link = product.xpath(
+                './/span[contains(@class, "search-product-name-wrap")]/a[contains(@class, "blue-hover-link")]/@href').get()
+            item["url"] = response.urljoin(product_link)
+
+            current_price = product.xpath(
+                './/div[contains(@class, "price-break")]/div[contains(@class, "pricing-wrap")][1]/div/div[contains(@class, "savings-highlight-wrap")]/span[contains(@class, "price-size")]/text()').get()
+            if current_price:
+                item["current_price"] = current_price.strip().replace("$", "")
+            else:
+                item["current_price"] = current_price
+
+            regular_price = product.xpath(
+                './/span[contains(@class, "elp-percentage")]/del/text()').get()
+            if regular_price:
+                item["regular_price"] = regular_price.strip().replace("$", "")
+            else:
+                item["regular_price"] = item["current_price"]
+
+            # delete and generate in the database
+            item["stock"] = 1
+            item["in_stock"] = True
             item["delivery_tag"] = 1
+
             yield item
 
         next_page = response.xpath(

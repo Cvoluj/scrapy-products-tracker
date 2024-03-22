@@ -44,18 +44,27 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
             '//div[@id="SkuMainContentDiv"]/h1[contains(@class, "m-sku-title")]/text()').get()
         item["description"] = response.xpath(
             '//div[@id="skuDescription"]/div[contains(@class, "qOverflow")]/div/span/text()').get()
-        item["brand"] = response.xpath(
-            '//div[span/text()="Brand"]/following-sibling::div[1]/text()').get().strip()
+        brand = response.xpath(
+            '//div[span/text()="Brand"]/following-sibling::div[1]/text()').get()
+        if brand:
+            item["brand"] = brand.strip()
+        else:
+            item["brand"] = brand
 
         # item["img"] = 'https:' + response.xpath('//div[contains(@class, "skuImageZoom")]/img/@src').get()
         item["product_page_url"] = 'https:' + response.xpath('//div[contains(@class, "skuImageZoom")]/img/@src').get()
 
-        item["current_price"] = response.xpath(
+        current_price = response.xpath(
             '//div[@class="row no-gutters"]//div[contains(@class, "pricing-wrap")]/div/div/span[contains(@class, "price-size") and contains(text(), "$")]/text()').get()
+        if current_price:
+            item["current_price"] = current_price.strip().replace("$", "")
+        else:
+            item["current_price"] = current_price
+
         regular_price = response.xpath(
             '//div[@class="row no-gutters"]//div[contains(@class, "pricing-wrap")]/div/span[contains(@class, "elp-percentage")]/del[contains(text(), "$")]/text()').get()
         if regular_price:
-            item["regular_price"] = regular_price
+            item["regular_price"] = regular_price.strip().replace("$", "")
         else:
             item["regular_price"] = item["current_price"]
 
@@ -67,13 +76,15 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
         if additional_info_keys:
             for element in additional_info_keys:
                 additional_info[element.strip()] = response.xpath(
-                    f'//div[span/text()="{element}"]/following-sibling::div[1]/text()').get().strip()
+                    f'//div[span/text()="{element}"]/following-sibling::div[1]/text()').get(default="No").strip()
             item["additional_info"] = additional_info
         else:
             item["additional_info"] = None
 
-        item["stock"] = True
+        # delete and generate in the database
+        item["stock"] = 1
         item["in_stock"] = True
+        item["delivery_tag"] = 1
 
         yield item
 
