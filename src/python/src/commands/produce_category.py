@@ -17,7 +17,6 @@ class ProduceCategory(CSVProducer):
 
     domain_queue_map = {
         "www.zoro.com": "zoro_category_task",
-        "chat.openai.com": "chat_category_task"
     }
 
     def build_task_query_stmt(self, chunk_size):

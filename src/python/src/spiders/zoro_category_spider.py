@@ -17,8 +17,8 @@ class ZoroCategorySpiderSpider(TaskToSingleResultSpider):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.task_queue_name = "zoro_detail_page_spider_result_queue"
-        self.result_queue_name = f"{self.name}_result_queue"
+        self.task_queue_name = "zoro_category_task"
+        self.result_queue_name = f"products_result_queue"
         self.reply_to_queue_name = f"{self.name}_reply_queue"
         self.completion_strategy = RPCTaskConsumer.CompletionStrategies.REQUESTS_BASED
         self.headers = {
