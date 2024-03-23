@@ -5,21 +5,15 @@ from commands import CSVProducer
 from database.models import ProductTargets
 
 
-
 class ProduceUrl(CSVProducer):
     """
     Example of calling this command:
-    scrapy produce_url --file=csv_file.csv --reply_to_queue=reply --chunk_size=500 --mode=worker
+    scrapy produce_url --file=csv_file.csv --reply_to_queue=products_reply_queue --chunk_size=500 --mode=worker
 
     notice, --task_queue became unnecessary, because it alreade defined in CSVProducer. But if you want you still can change it 
     """
     model = ProductTargets
-
-    domain_queue_map = {
-        "www.zoro.com": "zoro_task",
-        "chat.openai.com": "chat_task"
-    }
-
+    
     def build_task_query_stmt(self, chunk_size):
         """This method must returns sqlalchemy Executable or string that represents valid raw SQL select query
 

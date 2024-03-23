@@ -1,5 +1,5 @@
 import logging, csv
-from urllib.parse import urlparse
+from furl import furl
 from twisted.internet import defer
 from sqlalchemy import Table
 from sqlalchemy.dialects.mysql import insert, Insert
@@ -46,9 +46,8 @@ class CSVDatabase:
         except Exception as e:
             logging.error("Error inserting item: %s", e)
     
-
     def parse_domain(self, url):
-        return urlparse(url).netloc
+        return furl(url).netloc
 
     def run(self):
         self.read_csv_and_insert()

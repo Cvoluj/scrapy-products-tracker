@@ -9,15 +9,15 @@ from database.models import CategoryTargets
 class ProduceCategory(CSVProducer):
     """
     Example of calling this command:
-    scrapy produce_category --file=csv_file.csv --reply_to_queue=reply --chunk_size=500 --mode=worker
+    scrapy produce_category --file=csv_file.csv --reply_to_queue=category_reply_queue --chunk_size=500 --mode=worker
 
     notice, --task_queue became unnecessary, because it alreade defined in CSVProducer. But if you want you still can change it 
     """
     model = CategoryTargets
 
-    domain_queue_map = {
-        "www.zoro.com": "zoro_category_task",
-    }
+    def __init__(self):
+        super().__init__()
+        self.domain_queue_map = {domain: f'{queue}_category' for domain, queue in self.domain_queue_map.items()}
 
     def build_task_query_stmt(self, chunk_size):
         """This method must returns sqlalchemy Executable or string that represents valid raw SQL select query

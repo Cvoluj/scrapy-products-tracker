@@ -1,6 +1,7 @@
 import json, functools, pika
 from argparse import Namespace
 from sqlalchemy import Table
+from scrapy.utils.project import get_project_settings
 
 from rmq.commands import Producer
 from utils import CSVDatabase
@@ -9,18 +10,14 @@ from utils import CSVDatabase
 class CSVProducer(Producer):
     """
     Inheriting this class require declaring sqlalcemy model and mapping for domain: queue
-    Example:
-    >>> model = <SQLAlchemyModel>
-    >>> domain_queue_map = { 
-        "www.zoro.com": "zoro_task",
-        "chat.openai.com": "chat_task"
-    }
     """
+    settings = get_project_settings()
+    
     model: Table = None
-    domain_queue_map = {
 
-    }
+    domain_queue_map = settings.get("DOMAIN_QUEUE_MAP")
     unmapped_domain_queue = 'unmapped_domain'
+    
     def __init__(self):
         super().__init__()
         self.csv_file = None
@@ -53,6 +50,10 @@ class CSVProducer(Producer):
     
     def execute(self, _args: list[str], opts: Namespace):
         self.init_csv_file_name(opts)
+        if self.model is None:
+            raise NotImplementedError(
+                "SQLAlchemy table model field must be provided in class"
+            )
         self.csv_database = CSVDatabase(self.csv_file, self.model)
         self.csv_database.read_csv_and_insert()
         super().execute(_args, opts)

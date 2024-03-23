@@ -2,6 +2,7 @@ import json
 
 import scrapy
 from scrapy.core.downloader.handlers.http11 import TunnelError
+from scrapy.utils.project import get_project_settings
 from scrapy.http import Request, Response, JsonRequest
 from rmq.pipelines import ItemProducerPipeline
 from rmq.spiders import TaskToSingleResultSpider
@@ -14,12 +15,13 @@ from items import ProductItem
 class ZoroCategorySpiderSpider(TaskToSingleResultSpider):
     name = "zoro_category_spider"
     custom_settings = {"ITEM_PIPELINES": {get_import_full_name(ItemProducerPipeline): 310}}
+    project_settings = get_project_settings()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.task_queue_name = "zoro_category_task"
-        self.result_queue_name = f"products_result_queue"
-        self.reply_to_queue_name = f"{self.name}_reply_queue"
+        self.task_queue_name = "zoro_task_category"
+        self.result_queue_name = "products_result_queue"
+        self.reply_to_queue_name = self.project_settings.get("CATEGORY_REPLY_QUEUE")
         self.completion_strategy = RPCTaskConsumer.CompletionStrategies.REQUESTS_BASED
         self.headers = {
             "apikey": "924526ffbdad25e5923b",
