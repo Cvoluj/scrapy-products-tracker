@@ -68,6 +68,7 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
                 "value": value,
                 "category_id": category_id,
             },
+            dont_filter=True,
         )
 
     @rmq_callback
@@ -85,6 +86,7 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
             headers=self.headers,
             callback=self.parse_availability,
             meta={"products": products, "start_position": start_position},
+            dont_filter=True,
         )
 
         total_products = data.get("facets", [{}])[0].get("refinements", [{}])[0].get("count")
@@ -108,6 +110,7 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
                         "value": response.meta["value"],
                         "category_id": response.meta["category_id"],
                     },
+                    dont_filter=True,
                 )
 
     @rmq_callback
