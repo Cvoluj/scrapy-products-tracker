@@ -51,11 +51,11 @@ class CSVProducer(Producer):
     def execute(self, _args: list[str], opts: Namespace):
         self.init_csv_file_name(opts)
         if self.model is None:
-            raise NotImplementedError(
+            raise ValueError(
                 "SQLAlchemy table model field must be provided in class"
             )
         self.csv_database = CSVDatabase(self.csv_file, self.model)
-        self.csv_database.read_csv_and_insert()
+        self.csv_database.insert_from_csv()
         super().execute(_args, opts)
     
     def get_queue_name(self, msg_body):
