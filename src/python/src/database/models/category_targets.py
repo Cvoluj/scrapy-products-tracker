@@ -1,5 +1,4 @@
-from sqlalchemy import Column, text, String
-from sqlalchemy.dialects.mysql import MEDIUMINT, TEXT, BIGINT, TIMESTAMP
+from sqlalchemy import Column, String
 
 from database.models import Base
 from .mixins import MysqlPrimaryKeyMixin, MysqlStatusMixin, MysqlExceptionMixin, MysqlTimestampsMixin

@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, text, ForeignKey
-from sqlalchemy.dialects.mysql import DECIMAL, MEDIUMINT, TIMESTAMP, BIGINT, BOOLEAN, INTEGER
+from sqlalchemy.dialects.mysql import DECIMAL, MEDIUMINT, TIMESTAMP, BOOLEAN, INTEGER
 
 from database.models import Base
 from .mixins import MysqlPrimaryKeyMixin
