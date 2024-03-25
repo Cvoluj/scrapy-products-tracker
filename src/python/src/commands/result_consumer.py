@@ -6,6 +6,7 @@ from rmq.commands import Consumer
 from database.models import ProductTargets, ProductHistory
 from rmq.utils.sql_expressions import compile_expression
 
+
 class ResultConsumer(Consumer):
     def __init__(self):
         super().__init__()
@@ -33,7 +34,7 @@ class ResultConsumer(Consumer):
             product_external_id=message_body.get('url'),
             regular_price=message_body.get('regular_price'),
             current_price=message_body.get('current_price'),
-            in_stock=message_body.get('in_stock'),
+            is_in_stock=message_body.get('is_in_stock'),
             stock=message_body.get('stock'),
             position=message_body.get('position')
         )

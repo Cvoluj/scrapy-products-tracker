@@ -121,9 +121,9 @@ class ZoroCategorySpiderSpider(TaskToSingleResultSpider):
         for i, product in enumerate(products):
             detail_info = product["variants"][0]
             item = ProductItem()
-            item["in_stock"] = True
+            item["is_in_stock"] = True
             if availability_dict.get(product["id"]) == "Out of Stock":
-                item["in_stock"] = False
+                item["is_in_stock"] = False
             item["regular_price"] = detail_info.get("originalPrice")
             item["title"] = detail_info["title"]
             item["description"] = detail_info["description"]

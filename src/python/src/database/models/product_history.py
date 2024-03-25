@@ -13,7 +13,7 @@ class ProductHistory(Base, MysqlPrimaryKeyMixin):
     )
     regular_price = Column('regular_price', DECIMAL(20, 2))
     current_price = Column('current_price', DECIMAL(20, 2))
-    in_stock = Column('in_stock', BOOLEAN)
+    is_in_stock = Column('is_in_stock', BOOLEAN)
     stock = Column('stock', MEDIUMINT(unsigned=True))
     position = Column('position', INTEGER(unsigned=True))
     created_at = Column(

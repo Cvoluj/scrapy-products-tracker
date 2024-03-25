@@ -13,6 +13,6 @@ class ProductItem(RMQItem):
 
     regular_price = scrapy.Field()
     current_price = scrapy.Field()
-    in_stock = scrapy.Field()
+    is_in_stock = scrapy.Field()
     stock = scrapy.Field()
     position = scrapy.Field()
