@@ -1,14 +1,13 @@
-import datetime
 import json
-import re
 
 import scrapy
 from scrapy.core.downloader.handlers.http11 import TunnelError
 from scrapy.spidermiddlewares.httperror import HttpError
-from datetime import datetime
 
 from items import ProductItem
+from rmq.pipelines import ItemProducerPipeline
 from rmq.spiders import TaskToMultipleResultsSpider
+from rmq.utils import get_import_full_name
 from rmq.utils.decorators import rmq_callback, rmq_errback
 from scrapy.utils.project import get_project_settings
 
@@ -16,7 +15,7 @@ from scrapy.utils.project import get_project_settings
 class QuillProductsSpider(TaskToMultipleResultsSpider):
     name = "quill_products_spider"
     start_urls = "https://www.quill.com"
-    custom_settings = {"ITEM_PIPELINES": {'rmq.pipelines.item_producer_pipeline.ItemProducerPipeline': 310, }}
+    custom_settings = {"ITEM_PIPELINES": {get_import_full_name(ItemProducerPipeline): 310}}
     project_settings = get_project_settings()
 
     def __init__(self, *args, **kwargs):
@@ -31,7 +30,6 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
                               callback=self.parse,
                               errback=self.errback,
                               dont_filter=True)
-
 
     @rmq_callback
     def parse(self, response):
@@ -53,14 +51,16 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
         item["image_url"] = 'https:' + response.xpath('//div[contains(@class, "skuImageZoom")]/img/@src').get()
 
         current_price = response.xpath(
-            '//div[@class="row no-gutters"]//div[contains(@class, "pricing-wrap")]/div/div/span[contains(@class, "price-size") and contains(text(), "$")]/text()').get()
+            '//div[@class="row no-gutters"]//div[contains(@class, "pricing-wrap")]/div/div/span'
+            '[contains(@class, "price-size") and contains(text(), "$")]/text()').get()
         if current_price:
             item["current_price"] = current_price.strip().replace("$", "")
         else:
             item["current_price"] = current_price
 
         regular_price = response.xpath(
-            '//div[@class="row no-gutters"]//div[contains(@class, "pricing-wrap")]/div/span[contains(@class, "elp-percentage")]/del[contains(text(), "$")]/text()').get()
+            '//div[@class="row no-gutters"]//div[contains(@class, "pricing-wrap")]/div/span'
+            '[contains(@class, "elp-percentage")]/del[contains(text(), "$")]/text()').get()
         if regular_price:
             item["regular_price"] = regular_price.strip().replace("$", "")
         else:
