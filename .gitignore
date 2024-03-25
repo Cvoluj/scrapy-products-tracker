@@ -11,3 +11,4 @@ logs/*.log
 build/
 proxy_list.json
 env.py
+modified_rpc_task_consumer.py
