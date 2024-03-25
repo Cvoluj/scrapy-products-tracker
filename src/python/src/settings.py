@@ -55,6 +55,20 @@ DB_USERNAME = os.getenv("DB_USERNAME", "root")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 DB_DATABASE = os.getenv("DB_DATABASE", "db_name")
 
+
+# This dict is used by CSVProducer and inherited from him classes
+# DOMAIN_QUEUE_MAP = { 
+#       "www.zoro.com": "zoro_task",
+#       <website_domain>: <website_task_queue>,
+#   }
+DOMAIN_QUEUE_MAP = {
+    "www.zoro.com": "zoro_task",
+}
+
+PRODUCTS_REPLY_QUEUE = "products_reply_queue"
+CATEGORY_REPLY_QUEUE = "category_reply_queue"
+
+
 PIKA_LOG_LEVEL = os.getenv("PIKA_LOG_LEVEL", "WARN")
 logging.getLogger("pika").setLevel(PIKA_LOG_LEVEL)
 

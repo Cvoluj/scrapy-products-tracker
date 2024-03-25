@@ -1,20 +1,13 @@
-from sqlalchemy import Column, text, String
-from sqlalchemy.dialects.mysql import MEDIUMINT, TEXT, BIGINT
+from sqlalchemy import Column, String, text
+from sqlalchemy.dialects.mysql import BOOLEAN
 
 from database.models import Base
+from .mixins import MysqlPrimaryKeyMixin, MysqlStatusMixin, MysqlExceptionMixin, MysqlTimestampsMixin
 
 
-class CategoryTargets(Base):
+class CategoryTargets(Base, MysqlPrimaryKeyMixin, MysqlStatusMixin, MysqlExceptionMixin, MysqlTimestampsMixin):
     __tablename__ = 'category_targets'
 
-    id = Column("id", BIGINT(unsigned=True), primary_key=True, autoincrement=True)
-    url = Column("url", String(255), unique=True, nullable=False)
-    status = Column(
-        "status",
-        MEDIUMINT(unsigned=True),
-        index=True,
-        unique=False,
-        nullable=False,
-        server_default=text("0"),
-    )
-    exception = Column("exception", TEXT(), nullable=True, unique=False)
+    url = Column("url", String(768), unique=True, nullable=False)
+    domain = Column('domain', String(255), nullable=False)
+    is_tracked = Column('is_tracked', BOOLEAN, nullable=False, server_default=text("True"))
