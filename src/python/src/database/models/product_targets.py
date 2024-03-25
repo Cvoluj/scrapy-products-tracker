@@ -1,5 +1,5 @@
-from sqlalchemy import Column, String
-from sqlalchemy.dialects.mysql import TEXT, JSON
+from sqlalchemy import Column, String, text
+from sqlalchemy.dialects.mysql import TEXT, JSON, BOOLEAN
 
 from database.models import Base
 from .mixins import MysqlPrimaryKeyMixin, MysqlStatusMixin, MysqlExceptionMixin, MysqlTimestampsMixin
@@ -18,4 +18,4 @@ class ProductTargets(Base, MysqlPrimaryKeyMixin, MysqlStatusMixin, MysqlExceptio
     image_url = Column('image_url', String(255))
     image_file = Column('image_file', String(255))
     additional_info = Column('additional_info', JSON)
-
+    is_tracked = Column('is_tracked', BOOLEAN, nullable=False, server_default=text("True"))
