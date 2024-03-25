@@ -12,7 +12,7 @@ from rmq.extensions import RPCTaskConsumer
 from items import ProductItem
 
 
-class ZoroDetailPageSpiderSpider(TaskToSingleResultSpider):
+class ZoroDetailPageSpider(TaskToSingleResultSpider):
     name = "zoro_detail_page_spider"
 
     custom_settings = {"ITEM_PIPELINES": {get_import_full_name(ItemProducerPipeline): 310}}
