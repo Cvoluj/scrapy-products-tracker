@@ -56,7 +56,11 @@ class ZoroDetailPageSpiderSpider(TaskToSingleResultSpider):
         item["url"] = response.url
         item["title"] = product_data.get("name")
         item["description"] = product_data.get("description")
-        item["current_price"] = product_data.get("offers").get("price")
+
+        current_price = product_data.get("offers").get("price")
+        if current_price:
+            item["current_price"] = current_price
+
         regular_price = response.xpath("//div[@class='strikethrough-price']/text()").get()
         if regular_price:
             item["regular_price"] = float(regular_price.strip().replace("$", ""))
