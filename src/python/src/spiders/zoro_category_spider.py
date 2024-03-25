@@ -12,7 +12,7 @@ from rmq.extensions import RPCTaskConsumer
 from items import ProductItem
 
 
-class ZoroCategorySpiderSpider(TaskToSingleResultSpider):
+class ZoroCategorySpider(TaskToSingleResultSpider):
     name = "zoro_category_spider"
     custom_settings = {"ITEM_PIPELINES": {get_import_full_name(ItemProducerPipeline): 310}}
     project_settings = get_project_settings()
@@ -47,6 +47,7 @@ class ZoroCategorySpiderSpider(TaskToSingleResultSpider):
             headers=self.headers,
             callback=self.parse_category_pages,
             meta={"category_id": category_id},
+            dont_filter=True,
         )
 
     @rmq_callback

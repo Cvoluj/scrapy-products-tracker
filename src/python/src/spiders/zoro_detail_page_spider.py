@@ -37,7 +37,7 @@ class ZoroDetailPageSpider(TaskToSingleResultSpider):
         """
 
         data: Dict[str, Any] = json.loads(msg_body)
-        return scrapy.Request(data["url"], callback=self.parse_product)
+        return scrapy.Request(data["url"], callback=self.parse_product, dont_filter=True)
 
     @rmq_callback
     def parse_product(self, response: Response) -> ProductItem:
