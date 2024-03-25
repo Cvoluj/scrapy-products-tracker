@@ -21,13 +21,15 @@ class ResultConsumer(Consumer):
             image_url=message_body.get('image_url'),
             image_file=message_body.get('image_file'),
             additional_info=json.dumps(message_body.get('additional_info')),
+            status=2
         ).on_duplicate_key_update(
             title=message_body.get('title'),
             description=message_body.get('description'),
             brand=message_body.get('brand'),
             image_url=message_body.get('image_url'),
             image_file=message_body.get('image_file'),
-            additional_info=json.dumps(message_body.get('additional_info'))
+            additional_info=json.dumps(message_body.get('additional_info')),
+            status=2
         )
 
         product_history_stmt = insert(ProductHistory).values(
