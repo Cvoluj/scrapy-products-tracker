@@ -7,40 +7,37 @@ from scrapy.core.downloader.handlers.http11 import TunnelError
 from scrapy.spidermiddlewares.httperror import HttpError
 from datetime import datetime
 
-from items import QuillCategoryItem
+from items import ProductItem
 from rmq.spiders import TaskToMultipleResultsSpider
 from rmq.utils.decorators import rmq_callback, rmq_errback
+from scrapy.utils.project import get_project_settings
+project_settings = get_project_settings()
 
 
 class QuillCategorySpider(TaskToMultipleResultsSpider):
     name = "quill_category_spider"
     start_urls = "https://www.quill.com"
     custom_settings = {"ITEM_PIPELINES": {'rmq.pipelines.item_producer_pipeline.ItemProducerPipeline': 310, }}
+    project_settings = get_project_settings()
 
     def __init__(self, *args, **kwargs):
         super(QuillCategorySpider, self).__init__(*args, **kwargs)
-        self.task_queue_name = f"{self.name}_task_queue"
-        self.result_queue_name = f"{self.name}_result_queue"
-        # self.reply_queue_name = f"{self.name}_reply_queue"
+        self.task_queue_name = "quill_task_category"
+        self.result_queue_name = "products_result_queue"
+        self.reply_to_queue_name = self.project_settings.get("CATEGORY_REPLY_QUEUE")
 
-    # def next_request(self, _delivery_tag, msg_body):
-    #     data = json.loads(msg_body)
-    #     return scrapy.Request(data["url"],
-    #                           callback=self.parse,
-    #                           meta={'delivery_tag': _delivery_tag},
-    #                           errback=self.errback)
-
-    def start_requests(self):
-        urls = ['https://www.quill.com/disinfectant-wipes/cbl/27739.html',
-                # 'https://www.quill.com/external-hard-drives/cbk/116139.html',
-                # 'https://www.quill.com/sandisk-sdssdrc-032g-g26-solid-state-drive/cbk/98183.html',
-                ]
-        for i in urls:
-            yield scrapy.Request(url=i, meta={'position': 0}, callback=self.parse)
+    def next_request(self, _delivery_tag, msg_body):
+        data = json.loads(msg_body)
+        return scrapy.Request(data["url"],
+                              callback=self.parse,
+                              meta={'delivery_tag': _delivery_tag},
+                              errback=self.errback,
+                              dont_filter=True
+                              )
 
     @rmq_callback
     def parse(self, response):
-        item = QuillCategoryItem()
+        item = ProductItem()
         position = response.meta['position']
 
         product_list = response.xpath(
@@ -70,8 +67,7 @@ class QuillCategorySpider(TaskToMultipleResultsSpider):
 
             # delete and generate in the database
             item["stock"] = 1
-            item["in_stock"] = True
-            item["delivery_tag"] = 1
+            item["is_in_stock"] = True
 
             yield item
 

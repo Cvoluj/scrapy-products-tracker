@@ -7,37 +7,35 @@ from scrapy.core.downloader.handlers.http11 import TunnelError
 from scrapy.spidermiddlewares.httperror import HttpError
 from datetime import datetime
 
-from items import QuillProductsItem
+from items import ProductItem
 from rmq.spiders import TaskToMultipleResultsSpider
 from rmq.utils.decorators import rmq_callback, rmq_errback
+from scrapy.utils.project import get_project_settings
 
 
 class QuillProductsSpider(TaskToMultipleResultsSpider):
     name = "quill_products_spider"
     start_urls = "https://www.quill.com"
     custom_settings = {"ITEM_PIPELINES": {'rmq.pipelines.item_producer_pipeline.ItemProducerPipeline': 310, }}
+    project_settings = get_project_settings()
 
     def __init__(self, *args, **kwargs):
         super(QuillProductsSpider, self).__init__(*args, **kwargs)
-        self.task_queue_name = f"{self.name}_task_queue"
-        self.result_queue_name = f"{self.name}_result_queue"
-        # self.reply_queue_name = f"{self.name}_reply_queue"
+        self.task_queue_name = "quill_task_category"
+        self.result_queue_name = "products_result_queue"
+        self.reply_to_queue_name = self.project_settings.get("CATEGORY_REPLY_QUEUE")
 
-    # def next_request(self, _delivery_tag, msg_body):
-    #     data = json.loads(msg_body)
-    #     return scrapy.Request(data["url"],
-    #                           callback=self.parse,
-    #                           meta={'delivery_tag': _delivery_tag},
-    #                           errback=self.errback)
+    def next_request(self, _delivery_tag, msg_body):
+        data = json.loads(msg_body)
+        return scrapy.Request(data["url"],
+                              callback=self.parse,
+                              errback=self.errback,
+                              dont_filter=True)
 
-    def start_requests(self):
-        urls = ['https://www.quill.com/samsung-t7-shield-2tb-usb-32-external-solid-state-drive-mu-pe2t0s-am/cbs/55454570.html']
-        for i in urls:
-            yield scrapy.Request(url=i, callback=self.parse)
 
     @rmq_callback
     def parse(self, response):
-        item = QuillProductsItem()
+        item = ProductItem()
 
         item["url"] = response.url
         item["title"] = response.xpath(
@@ -52,7 +50,7 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
             item["brand"] = brand
 
         # item["img"] = 'https:' + response.xpath('//div[contains(@class, "skuImageZoom")]/img/@src').get()
-        item["product_page_url"] = 'https:' + response.xpath('//div[contains(@class, "skuImageZoom")]/img/@src').get()
+        item["image_url"] = 'https:' + response.xpath('//div[contains(@class, "skuImageZoom")]/img/@src').get()
 
         current_price = response.xpath(
             '//div[@class="row no-gutters"]//div[contains(@class, "pricing-wrap")]/div/div/span[contains(@class, "price-size") and contains(text(), "$")]/text()').get()
@@ -68,7 +66,6 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
         else:
             item["regular_price"] = item["current_price"]
 
-
         additional_info = {}
         additional_info_keys = response.xpath(
             '//div[contains(@class, "skuSpecification")]/div/div/span/text()').getall()
@@ -83,8 +80,7 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
 
         # delete and generate in the database
         item["stock"] = 1
-        item["in_stock"] = True
-        item["delivery_tag"] = 1
+        item["is_in_stock"] = True
 
         yield item
 
