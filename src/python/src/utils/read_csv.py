@@ -1,6 +1,6 @@
 import logging, csv
 from furl import furl
-from twisted.internet import defer
+from twisted.internet import reactor
 from sqlalchemy import Table
 from sqlalchemy.dialects.mysql import insert, Insert
 from rmq.utils.sql_expressions import compile_expression
@@ -16,18 +16,14 @@ class CSVDatabase:
         self.conn = get_db()
         self.csv_file = csv_file
 
-    @defer.inlineCallbacks
-    def read_csv_and_insert(self):
+    def insert_from_csv(self):
         with open(self.csv_file, mode='r') as file:
             reader = csv.reader(file)
             next(reader)
             for row in reader:
                 domain = self.parse_domain(row[0])
-                yield self.process_row(row[0], domain)
+                self.process_row(row[0], domain)
 
-        self.conn.close()
-        
-    @defer.inlineCallbacks
     def process_row(self, row, domain):
         try:
             values = {
@@ -42,18 +38,16 @@ class CSVDatabase:
                 'status': TaskStatusCodes.NOT_PROCESSED
             }).values(**values)
 
-            yield self.conn.runQuery(*compile_expression(stmt))
+            self.conn.runQuery(*compile_expression(stmt))
         except Exception as e:
             logging.error("Error inserting item: %s", e)
     
     def parse_domain(self, url):
         return furl(url).netloc
 
-    def run(self):
-        self.read_csv_and_insert()
-
 
 if __name__ == '__main__':
     csv_file = 'csv_file.csv'
     csvdatabase = CSVDatabase(csv_file)
-    csvdatabase.run()
+    csvdatabase.insert_from_csv()
+    reactor.run
