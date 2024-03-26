@@ -21,7 +21,7 @@ class QuillCategorySpider(TaskToMultipleResultsSpider):
     def __init__(self, *args, **kwargs):
         super(QuillCategorySpider, self).__init__(*args, **kwargs)
         self.task_queue_name = "quill_task_category"
-        self.result_queue_name = "products_result_queue"
+        self.result_queue_name = "from_category_result_queue"
         self.reply_to_queue_name = self.project_settings.get("CATEGORY_REPLY_QUEUE")
 
     def next_request(self, _delivery_tag, msg_body):
