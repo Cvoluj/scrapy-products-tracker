@@ -1,4 +1,5 @@
 from sqlalchemy.dialects.mysql import insert
+from furl import furl
 
 from rmq.commands import Consumer
 from rmq.utils import TaskStatusCodes
@@ -11,10 +12,12 @@ class FromCategoryResultConsumer(Consumer):
         self.queue_name = 'from_category_result_queue'
 
     def build_message_store_stmt(self, message_body):
+        url=message_body.get('url')
         product_targets_stmt = insert(ProductTargets).values(
             # position=message_body.get('position'),
-            url=message_body.get('url'),
-            external_id=message_body.get('url'),
+            url=url,
+            external_id=url,
+            domain=furl(url).netloc
         ).on_duplicate_key_update(
             status=TaskStatusCodes.NOT_PROCESSED.value
         )
