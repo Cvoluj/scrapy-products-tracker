@@ -57,7 +57,7 @@ DB_DATABASE = os.getenv("DB_DATABASE", "db_name")
 
 
 # This dict is used by CSVProducer and inherited from him classes
-# DOMAIN_QUEUE_MAP = { 
+# DOMAIN_QUEUE_MAP = {
 #       "www.zoro.com": "zoro_task",
 #       <website_domain>: <website_task_queue>,
 #   }
