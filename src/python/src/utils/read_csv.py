@@ -1,7 +1,7 @@
 import logging, csv
 from furl import furl
 from twisted.internet import reactor
-from sqlalchemy import Table, update
+from sqlalchemy import Table
 from sqlalchemy.dialects.mysql import insert, Insert
 from rmq.utils.sql_expressions import compile_expression
 from rmq.utils import TaskStatusCodes
@@ -23,20 +23,6 @@ class CSVDatabase:
             for row in reader:
                 domain = self.parse_domain(row[0])
                 self.process_row(row[0], domain)
-        
-    def update_from_csv(self):
-        with open(self.csv_file, mode='r') as file:
-            reader = csv.reader(file)
-            next(reader)
-            for row in reader:
-                self.update_status(row[0])
-                    
-    def update_status(self, row):
-        try:
-            stmt = update(self.model).where(self.model.url == row).values(status=TaskStatusCodes.NOT_PROCESSED)
-            self.conn.runQuery(*compile_expression(stmt))
-        except Exception as e:
-            logging.error("Error inserting item: %s", e)
 
     def process_row(self, row, domain):
         try:

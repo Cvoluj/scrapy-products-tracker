@@ -1,10 +1,14 @@
 from argparse import Namespace
 from scrapy.commands import ScrapyCommand
 from twisted.internet import reactor, task
+from sqlalchemy import Table, update
+from rmq.utils.sql_expressions import compile_expression
+from rmq.utils import TaskStatusCodes
+
 
 from commands.base import BaseCommand
 from database.models import CategoryTargets
-from utils import CSVDatabase
+from database.connection import get_db
 
 class StartSession(BaseCommand):
     
@@ -13,7 +17,8 @@ class StartSession(BaseCommand):
         self.hours = None
         self.minutes = None
         self.csv_file = None
-        self.model = CategoryTargets
+        self.model: Table = CategoryTargets
+        self.conn = get_db()
 
     def add_options(self, parser):
         ScrapyCommand.add_options(self, parser)
@@ -38,22 +43,6 @@ class StartSession(BaseCommand):
             dest="minutes",
             help="number of minutes",
         )
-        parser.add_argument(
-            "-f",
-            "--file",
-            type=str,
-            dest="csv_file",
-            help="path to csv file",
-        )
-
-    def init_csv_file_name(self, opts: Namespace):
-        csv_file = getattr(opts, "csv_file", None)
-        if csv_file is None:
-            raise NotImplementedError(
-                "csv file name must be provided with options or override this method to return it"
-            )
-        self.csv_file = csv_file
-        return csv_file
     
     def init_days(self, opts: Namespace):
         days = getattr(opts, "days", None)
@@ -79,17 +68,22 @@ class StartSession(BaseCommand):
     def execute(self, args, opts: Namespace):
         self.init_days(opts)
         self.init_hours(opts)
-        self.init_minutes(opts)
-        self.init_csv_file_name(opts)
-        self.csv_database = CSVDatabase(self.csv_file, self.model)
+        self.init_minutes(opts)        
 
-        delay = ((self.days or 0) * 86400) + ((self.hours or 0) * 3600) + ((self.minutes or 0) * 60)
+        delay = ((self.days or 0) * 86400) + ((self.hours or 0) * 3600) + ((self.minutes or 0) * 10)
 
         repeat_session_task = task.LoopingCall(self.repeat_session)
         reactor.callLater(delay, repeat_session_task.start, delay)
+                    
+    def update_status(self):
+        try:
+            stmt = update(self.model).where(self.model.is_tracked == True).values(status=TaskStatusCodes.NOT_PROCESSED)
+            self.conn.runQuery(*compile_expression(stmt))
+        except Exception as e:
+            self.loggerr.error("Error updating item: %s", e)
 
     def repeat_session(self):
-        self.csv_database.update_from_csv()
+        self.update_status()
         self.logger.info('STATUS WERE UPDATED')
 
     def run(self, args: list[str], opts: Namespace):

@@ -63,6 +63,7 @@ DB_DATABASE = os.getenv("DB_DATABASE", "db_name")
 #   }
 DOMAIN_QUEUE_MAP = {
     "www.zoro.com": "zoro_task",
+    "www.quill.com": "quill_task"
 }
 
 PRODUCTS_REPLY_QUEUE = "products_reply_queue"
