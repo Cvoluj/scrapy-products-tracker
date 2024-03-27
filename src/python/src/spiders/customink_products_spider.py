@@ -41,7 +41,7 @@ class CustominkProductsSpider(TaskToMultipleResultsSpider):
 
         item["url"] = response.url
         item["title"] = response.xpath(
-            '//div[@id="SkuMainContentDiv"]/h1[contains(@class, "m-sku-title")]/text()').get()
+            '//script[@id="pc-Style-jsonld"]/text()').get()
         # item["description"] = response.xpath(
         #     '//div[@id="skuDescription"]/div[contains(@class, "qOverflow")]/div/span/text()').get()
         # brand = response.xpath(
