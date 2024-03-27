@@ -4,6 +4,7 @@ import os
 from datetime import datetime, timedelta
 from distutils.util import strtobool
 from typing import Dict
+import json
 
 from dotenv import load_dotenv
 from scrapy.utils.log import configure_logging
@@ -15,6 +16,8 @@ BOT_NAME = "YOUR_PROJECT_NAME"
 SPIDER_MODULES = ["spiders"]
 NEWSPIDER_MODULE = "spiders"
 COMMANDS_MODULE = "commands"
+
+ZORO_SPIDER_API_KEY = os.getenv("ZORO_SPIDER_API_KEY", "")
 
 PROXY = os.getenv("PROXY", "")
 PROXY_AUTH = os.getenv("PROXY_AUTH", "")
@@ -61,13 +64,11 @@ DB_DATABASE = os.getenv("DB_DATABASE", "db_name")
 #       "www.zoro.com": "zoro_task",
 #       <website_domain>: <website_task_queue>,
 #   }
-DOMAIN_QUEUE_MAP = {
-    "www.zoro.com": "zoro_task",
-    "www.quill.com": "quill_task"
-}
-
-PRODUCTS_REPLY_QUEUE = "products_reply_queue"
-CATEGORY_REPLY_QUEUE = "category_reply_queue"
+RMQ_DOMAIN_QUEUE_MAP = json.loads(os.getenv("RMQ_DOMAIN_QUEUE_MAP", {}))
+RMQ_CATEGORY_REPLY_QUEUE = os.getenv("RMQ_CATEGORY_REPLY_QUEUE", "category_reply_queue")
+RMQ_CATEGORY_RESULT_QUEUE = os.getenv("RMQ_CATEGORY_RESULT_QUEUE", "category_result_queue")
+RMQ_PRODUCT_REPLY_QUEUE = os.getenv("RMQ_PRODUCT_REPLY_QUEUE", "product_reply_queue")
+RMQ_PRODUCT_RESULT_QUEUE = os.getenv("RMQ_PRODUCT_RESULT_QUEUE", "result_queue")
 
 
 PIKA_LOG_LEVEL = os.getenv("PIKA_LOG_LEVEL", "WARN")

@@ -14,15 +14,17 @@ from scrapy.utils.project import get_project_settings
 
 class QuillCategorySpider(TaskToMultipleResultsSpider):
     name = "quill_category_spider"
+    domain = "www.quill.com"
     start_urls = "https://www.quill.com"
     custom_settings = {"ITEM_PIPELINES": {get_import_full_name(ItemProducerPipeline): 310}}
     project_settings = get_project_settings()
 
     def __init__(self, *args, **kwargs):
         super(QuillCategorySpider, self).__init__(*args, **kwargs)
-        self.task_queue_name = "quill_task_category"
-        self.result_queue_name = "from_category_result_queue"
-        self.reply_to_queue_name = self.project_settings.get("CATEGORY_REPLY_QUEUE")
+        self.task_queue_name = (f'{self.project_settings.get("RMQ_DOMAIN_QUEUE_MAP").get(self.domain)}'
+                                f'_category_task_queue')
+        self.result_queue_name = self.project_settings.get("RMQ_CATEGORY_RESULT_QUEUE")
+        self.reply_to_queue_name = self.project_settings.get("RMQ_CATEGORY_REPLY_QUEUE")
 
     def next_request(self, _delivery_tag, msg_body):
         data = json.loads(msg_body)

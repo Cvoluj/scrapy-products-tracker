@@ -11,7 +11,7 @@ from rmq.utils.sql_expressions import compile_expression
 class ResultConsumer(Consumer):
     def __init__(self):
         super().__init__()
-        self.queue_name = 'products_result_queue'
+        self.queue_name = self.project_settings.get("RMQ_PRODUCT_RESULT_QUEUE")
 
     def build_message_store_stmt(self, message_body):
         product_target_stmt = insert(ProductTargets).values(
