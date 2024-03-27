@@ -1,13 +1,13 @@
 import logging, csv
 from furl import furl
 from twisted.internet import reactor
-from sqlalchemy import Table
+from sqlalchemy import Table, select, desc
 from sqlalchemy.dialects.mysql import insert, Insert
 from rmq.utils.sql_expressions import compile_expression
 from rmq.utils import TaskStatusCodes
 
 from database.connection import get_db
-from database.models import ProductTargets
+from database.models import Sessions, ProductTargets
 
 
 class CSVDatabase:
@@ -20,6 +20,9 @@ class CSVDatabase:
         with open(self.csv_file, mode='r') as file:
             reader = csv.reader(file)
             next(reader)
+            logging.warning('called')
+            self.create_session()
+            logging.warning('ended')
             for row in reader:
                 domain = self.parse_domain(row[0])
                 self.process_row(row[0], domain)
@@ -29,7 +32,9 @@ class CSVDatabase:
             values = {
                 "url": row,
                 "domain": domain,
+                "session": None
             }
+            logging.warning(self.get_session())
             if type(self.model) is ProductTargets:
                 values['external_id'] = row
                 
@@ -41,9 +46,21 @@ class CSVDatabase:
             self.conn.runQuery(*compile_expression(stmt))
         except Exception as e:
             logging.error("Error inserting item: %s", e)
+
+    def create_session(self):
+        try:
+            stmt: Insert = insert(Sessions).values(csv_file=self.csv_file)
+            self.conn.runQuery(*compile_expression(stmt))
+        except Exception as e:
+            logging.error("Error inserting item: %s", e)
     
+    def get_session(self):
+        stmt = select(Sessions).order_by(desc(Sessions.id)).limit(1)
+        return self.conn.runQuery(*compile_expression(stmt))
+
     def parse_domain(self, url):
         return furl(url).netloc
+        
 
 
 if __name__ == '__main__':

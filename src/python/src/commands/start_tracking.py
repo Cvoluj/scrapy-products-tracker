@@ -12,7 +12,7 @@ from database.connection import get_db
 
 class StartSession(BaseCommand):
     """
-    scrapy start_session --model=ProductTargets --minutes=1 --hours=1 --days=1
+    scrapy start_tracking --model=ProductTargets --minutes=1 --hours=1 --days=1
     """
     
     def init(self):
