@@ -5,13 +5,12 @@ from commands import CSVProducer
 from database.models import CategoryTargets
 
 
-
 class ProduceCategory(CSVProducer):
     """
     Example of calling this command:
-    scrapy produce_category --file=csv_file.csv --reply_to_queue=category_reply_queue --chunk_size=500 --mode=worker
+    scrapy from_csv_category_producer --file=csv_file.csv --reply_to_queue=category_reply_queue --chunk_size=500 --mode=worker
 
-    notice, --task_queue became unnecessary, because it alreade defined in CSVProducer. But if you want you still can change it 
+    notice, --task_queue became unnecessary, because it alreade defined in CSVProducer. But if you want you still can change it
     """
     model = CategoryTargets
 
@@ -31,7 +30,7 @@ class ProduceCategory(CSVProducer):
             CategoryTargets.status == TaskStatusCodes.NOT_PROCESSED.value,
         ).order_by(CategoryTargets.id.asc()).limit(chunk_size)
         return stmt
-    
+
     def build_task_update_stmt(self, db_task, status):
         """This method must returns sqlalchemy Executable or string that represents valid raw SQL update query
 
