@@ -1,5 +1,5 @@
-from sqlalchemy import Column, String, text
-from sqlalchemy.dialects.mysql import TEXT, JSON, BOOLEAN, INTEGER
+from sqlalchemy import Column, String, text, ForeignKey
+from sqlalchemy.dialects.mysql import TEXT, JSON, BOOLEAN, INTEGER, BIGINT
 
 from database.models import Base
 from .mixins import MysqlPrimaryKeyMixin, MysqlStatusMixin, MysqlExceptionMixin, MysqlTimestampsMixin
@@ -20,3 +20,4 @@ class ProductTargets(Base, MysqlPrimaryKeyMixin, MysqlStatusMixin, MysqlExceptio
     additional_info = Column('additional_info', JSON)
     is_tracked = Column('is_tracked', BOOLEAN, nullable=False, server_default=text("True"))
     position = Column('position', INTEGER(unsigned=True))
+    session = Column('session', BIGINT(unsigned=True), ForeignKey('sessions.id'))
