@@ -1,4 +1,4 @@
-"""product_targets_init
+"""create_table_product_targets
 
 Revision ID: e34a43d11daf
 Revises: dc60db9e1e47
