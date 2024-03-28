@@ -18,23 +18,21 @@ class CSVDatabase:
 
     def insert_from_csv(self):
         d = self.create_session()
-        d.addCallback(lambda _: self.get_session())
-        d.addCallback(self.process_csv_with_session)
+        d.addCallback(lambda _: self.process_csv_with_session())
         
-    def process_csv_with_session(self, session):
+    def process_csv_with_session(self):
         with open(self.csv_file, mode='r') as file:
             reader = csv.reader(file)
             next(reader)
             for row in reader:
                 domain = self.parse_domain(row[0])
-                self.process_row(row[0], domain, session)
+                self.process_row(row[0], domain)
 
-    def process_row(self, row, domain, session):
+    def process_row(self, row, domain):
         try:
             values = {
                 "url": row,
                 "domain": domain,
-                "session": session[0]['id']
             }
             
             if type(self.model) is ProductTargets:
@@ -43,7 +41,6 @@ class CSVDatabase:
             stmt: Insert = insert(self.model)
             stmt = stmt.on_duplicate_key_update({
                 'status': TaskStatusCodes.NOT_PROCESSED,
-                "session": session[0]['id']
             }).values(**values)
 
             self.conn.runQuery(*compile_expression(stmt))
@@ -56,10 +53,6 @@ class CSVDatabase:
             return self.conn.runQuery(*compile_expression(stmt))
         except Exception as e:
             logging.error("Error inserting item: %s", e)
-    
-    def get_session(self):
-        stmt = select(Sessions).order_by(desc(Sessions.id)).limit(1)
-        return self.conn.runQuery(*compile_expression(stmt))
 
     def parse_domain(self, url):
         return furl(url).netloc

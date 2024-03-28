@@ -1,7 +1,8 @@
 from argparse import Namespace
 from scrapy.commands import ScrapyCommand
 from twisted.internet import reactor, task
-from sqlalchemy import update
+from sqlalchemy import update, select, desc
+from sqlalchemy.dialects.mysql import Insert, insert
 from rmq.utils.sql_expressions import compile_expression
 from rmq.utils import TaskStatusCodes
 
@@ -20,6 +21,7 @@ class StartTracking(BaseCommand):
         self.hours = None
         self.minutes = None
         self.model = None
+        self.session_file = None
         self.conn = get_db()
 
     def add_options(self, parser):
@@ -87,6 +89,15 @@ class StartTracking(BaseCommand):
         self.minutes = minutes
         return minutes
     
+    def get_session(self):
+        stmt = select(Sessions).order_by(desc(Sessions.id)).limit(1)
+        deferred = self.conn.runQuery(*compile_expression(stmt))
+        deferred.addCallback(self.handle_session_result)
+        return deferred
+    
+    def handle_session_result(self, result):
+        self.session_file = result[0].get('csv_file') if result else None
+
     def execute(self, args, opts: Namespace):
         self.init_days(opts)
         self.init_hours(opts)
@@ -106,8 +117,18 @@ class StartTracking(BaseCommand):
             self.loggerr.error("Error updating item: %s", e)
 
     def repeat_session(self):
-        self.update_status()
+        d = self.get_session()
+        d.addCallback(lambda _: self.update_session())
+        d.addCallback(lambda _: self.update_status())
+
         self.logger.warning('STATUS WERE UPDATED')
+
+    def update_session(self):
+        try:
+            stmt: Insert = insert(Sessions).values(csv_file=self.session_file)
+            return self.conn.runQuery(*compile_expression(stmt))
+        except Exception as e:
+            self.logger.error("Error inserting item: %s", e)
 
     def run(self, args: list[str], opts: Namespace):
         reactor.callLater(0, self.execute, args, opts)
