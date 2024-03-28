@@ -1,4 +1,4 @@
-"""product_history_init
+"""create_table_product_history
 
 Revision ID: fd28d3489400
 Revises: e34a43d11daf
