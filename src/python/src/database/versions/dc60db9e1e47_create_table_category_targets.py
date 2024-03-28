@@ -1,4 +1,4 @@
-"""category_targets_init
+"""create_table_category_targets
 
 Revision ID: dc60db9e1e47
 Revises:

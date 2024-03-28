@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, text, ForeignKey
-from sqlalchemy.dialects.mysql import DECIMAL, MEDIUMINT, TIMESTAMP, BOOLEAN, INTEGER
+from sqlalchemy.dialects.mysql import DECIMAL, MEDIUMINT, TIMESTAMP, BOOLEAN, INTEGER, BIGINT
 
 from database.models import Base
 from .mixins import MysqlPrimaryKeyMixin
@@ -19,3 +19,6 @@ class ProductHistory(Base, MysqlPrimaryKeyMixin):
     created_at = Column(
         "created_at", TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"),
     )
+    session = Column('session', BIGINT(unsigned=True), ForeignKey('sessions.id'))
+    currency = Column('currency', String(255))
+    units = Column('units', String(255))
