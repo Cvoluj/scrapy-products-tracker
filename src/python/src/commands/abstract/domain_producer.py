@@ -1,7 +1,6 @@
 import json, functools, pika
 from argparse import Namespace
 from sqlalchemy import Table
-from scrapy.utils.project import get_project_settings
 
 from rmq.commands import Producer
 from utils import CSVDatabase
@@ -11,12 +10,10 @@ class DomainProducer(Producer):
     """
     This Producer inherits from base Producer, but changes logic of sending task with using domain_queue_map
     """
-    settings = get_project_settings()
-    domain_queue_map = settings.get("RMQ_DOMAIN_QUEUE_MAP")
-    unmapped_domain_queue = 'unmapped_domain'
-
     def __init__(self):
         super().__init__()
+        self.domain_queue_map = self.project_settings.get("RMQ_DOMAIN_QUEUE_MAP")
+        self.unmapped_domain_queue = self.project_settings.get("RMQ_UNMAPPED_DOMAIN_QUEUE")
 
     def init_task_queue_name(self, opts: Namespace):
         task_queue_name = getattr(opts, "task_queue_name", None)

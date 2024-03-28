@@ -61,10 +61,12 @@ DB_DATABASE = os.getenv("DB_DATABASE", "db_name")
 
 # This dict is used by CSVProducer and inherited from him classes
 # DOMAIN_QUEUE_MAP = {
-#       "www.zoro.com": "zoro_task",
-#       <website_domain>: <website_task_queue>,
+#       "www.zoro.com": "zoro",
+#       <website_domain>: <website_task_prefix>,
 #   }
-RMQ_DOMAIN_QUEUE_MAP = json.loads(os.getenv("RMQ_DOMAIN_QUEUE_MAP", {}))
+DOMAINS = os.getenv("DOMAINS", "").split(",")
+RMQ_DOMAIN_QUEUE_MAP = {domain: domain.split('.')[1] for domain in DOMAINS if domain}
+RMQ_UNMAPPED_DOMAIN_QUEUE = os.getenv("RMQ_UNMAPPED_DOMAIN_QUEUE", "unmapped_domain")
 RMQ_CATEGORY_REPLY_QUEUE = os.getenv("RMQ_CATEGORY_REPLY_QUEUE", "category_reply_queue")
 RMQ_CATEGORY_RESULT_QUEUE = os.getenv("RMQ_CATEGORY_RESULT_QUEUE", "category_result_queue")
 RMQ_PRODUCT_REPLY_QUEUE = os.getenv("RMQ_PRODUCT_REPLY_QUEUE", "product_reply_queue")

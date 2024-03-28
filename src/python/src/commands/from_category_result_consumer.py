@@ -1,6 +1,5 @@
 from sqlalchemy.dialects.mysql import insert
 from furl import furl
-from scrapy.utils.project import get_project_settings
 
 from rmq.commands import Consumer
 from rmq.utils import TaskStatusCodes
@@ -8,8 +7,6 @@ from database.models import ProductTargets
 
 
 class FromCategoryResultConsumer(Consumer):
-    project_settings = get_project_settings()
-
     def __init__(self):
         super().__init__()
         self.queue_name = self.project_settings.get("RMQ_CATEGORY_RESULT_QUEUE")
