@@ -1,6 +1,7 @@
 import datetime
 import json
 import re
+from urllib.parse import unquote, urlparse
 
 import scrapy
 from scrapy.core.downloader.handlers.http11 import TunnelError
@@ -40,46 +41,25 @@ class CustominkProductsSpider(TaskToMultipleResultsSpider):
         item = ProductItem()
 
         item["url"] = response.url
-        item["title"] = response.xpath(
-            '//script[@id="pc-Style-jsonld"]/text()').get()
-        # item["description"] = response.xpath(
-        #     '//div[@id="skuDescription"]/div[contains(@class, "qOverflow")]/div/span/text()').get()
-        # brand = response.xpath(
-        #     '//div[span/text()="Brand"]/following-sibling::div[1]/text()').get()
-        # if brand:
-        #     item["brand"] = brand.strip()
-        # else:
-        #     item["brand"] = brand
-        #
-        # # item["img"] = 'https:' + response.xpath('//div[contains(@class, "skuImageZoom")]/img/@src').get()
-        # item["image_url"] = 'https:' + response.xpath('//div[contains(@class, "skuImageZoom")]/img/@src').get()
-        #
-        # current_price = response.xpath(
-        #     '//div[@class="row no-gutters"]//div[contains(@class, "pricing-wrap")]/div/div/span[contains(@class, "price-size") and contains(text(), "$")]/text()').get()
-        # if current_price:
-        #     item["current_price"] = current_price.strip().replace("$", "")
-        # else:
-        #     item["current_price"] = current_price
-        #
-        # regular_price = response.xpath(
-        #     '//div[@class="row no-gutters"]//div[contains(@class, "pricing-wrap")]/div/span[contains(@class, "elp-percentage")]/del[contains(text(), "$")]/text()').get()
-        # if regular_price:
-        #     item["regular_price"] = regular_price.strip().replace("$", "")
-        # else:
-        #     item["regular_price"] = item["current_price"]
-        #
-        #
-        # additional_info = {}
-        # additional_info_keys = response.xpath(
-        #     '//div[contains(@class, "skuSpecification")]/div/div/span/text()').getall()
-        #
-        # if additional_info_keys:
-        #     for element in additional_info_keys:
-        #         additional_info[element.strip()] = response.xpath(
-        #             f'//div[span/text()="{element}"]/following-sibling::div[1]/text()').get(default="No").strip()
-        #     item["additional_info"] = additional_info
-        # else:
-        #     item["additional_info"] = None
+
+        data_json = json.loads(response.xpath('//script[@id="pc-Style-jsonld"]/text()').get())
+
+        item["title"] = data_json.get("name")
+        item["description"] = data_json.get("description")
+        item["brand"] = data_json.get("brand").get("name")
+        item["image_url"] = urlparse(unquote(data_json.get("image"))).path.lstrip('/')
+
+        # item["img"] = item["image_url"]
+
+        item["current_price"] = float(data_json.get("offers").get("price")) / float(data_json.get("offers").get("eligibleQuantity").get("value"))
+
+        item["regular_price"] = item["current_price"]
+
+        item["additional_info"] = {
+            "category": data_json.get("category").get("name"),
+            "rating_value": data_json.get("aggregateRating", {}).get("ratingValue", "No"),
+            "rating_count": data_json.get("aggregateRating", {}).get("ratingCount", "No"),
+        }
 
         # delete and generate in the database
         item["stock"] = 1
