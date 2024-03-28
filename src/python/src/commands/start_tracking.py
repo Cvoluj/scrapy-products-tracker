@@ -10,7 +10,7 @@ from commands.base import BaseCommand
 from database.models import *
 from database.connection import get_db
 
-class StartSession(BaseCommand):
+class StartTracking(BaseCommand):
     """
     scrapy start_tracking --model=ProductTargets --minutes=1 --hours=1 --days=1
     """
@@ -92,7 +92,7 @@ class StartSession(BaseCommand):
         self.init_hours(opts)
         self.init_minutes(opts)  
         self.init_model_name(opts)      
-        self.logger.warning(self.model)
+
         delay = ((self.days or 0) * 86400) + ((self.hours or 0) * 3600) + ((self.minutes or 0) * 10)
 
         repeat_session_task = task.LoopingCall(self.repeat_session)
@@ -100,7 +100,7 @@ class StartSession(BaseCommand):
                     
     def update_status(self):
         try:
-            stmt = update(self.model).where(self.model.is_tracked == True).values(status=TaskStatusCodes.NOT_PROCESSED)
+            stmt = update(self.model).where(self.model.is_tracked == 1).values(status=TaskStatusCodes.NOT_PROCESSED)
             self.conn.runQuery(*compile_expression(stmt))
         except Exception as e:
             self.loggerr.error("Error updating item: %s", e)
