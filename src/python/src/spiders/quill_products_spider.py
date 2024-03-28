@@ -3,26 +3,28 @@ import json
 import scrapy
 from scrapy.core.downloader.handlers.http11 import TunnelError
 from scrapy.spidermiddlewares.httperror import HttpError
+from scrapy.utils.project import get_project_settings
 
 from items import ProductItem
 from rmq.pipelines import ItemProducerPipeline
 from rmq.spiders import TaskToMultipleResultsSpider
 from rmq.utils import get_import_full_name
 from rmq.utils.decorators import rmq_callback, rmq_errback
-from scrapy.utils.project import get_project_settings
 
 
 class QuillProductsSpider(TaskToMultipleResultsSpider):
     name = "quill_products_spider"
+    domain = "www.quill.com"
     start_urls = "https://www.quill.com"
     custom_settings = {"ITEM_PIPELINES": {get_import_full_name(ItemProducerPipeline): 310}}
     project_settings = get_project_settings()
 
     def __init__(self, *args, **kwargs):
         super(QuillProductsSpider, self).__init__(*args, **kwargs)
-        self.task_queue_name = "quill_task_product"
-        self.result_queue_name = "products_result_queue"
-        self.reply_to_queue_name = self.project_settings.get("PRODUCTS_REPLY_QUEUE")
+        self.task_queue_name = (f"{self.project_settings.get('RMQ_DOMAIN_QUEUE_MAP').get(self.domain)}"
+                                f"_products_task_queue")
+        self.reply_to_queue_name = self.project_settings.get("RMQ_PRODUCT_REPLY_QUEUE")
+        self.result_queue_name = self.project_settings.get("RMQ_PRODUCT_RESULT_QUEUE")
 
     def next_request(self, _delivery_tag, msg_body):
         data = json.loads(msg_body)
