@@ -2,8 +2,10 @@ import json
 from typing import Dict, Any
 
 import scrapy
+from scrapy.utils.project import get_project_settings
 from scrapy.core.downloader.handlers.http11 import TunnelError
 from scrapy.http import Request, Response
+
 from rmq.pipelines import ItemProducerPipeline
 from rmq.spiders import TaskToSingleResultSpider
 from rmq.utils import get_import_full_name
@@ -13,15 +15,17 @@ from items import ProductItem
 
 
 class ZoroDetailPageSpider(TaskToSingleResultSpider):
-    name = "zoro_detail_page_spider"
-
+    name = "zoro_products_spider"
+    domain = "www.zoro.com"
     custom_settings = {"ITEM_PIPELINES": {get_import_full_name(ItemProducerPipeline): 310}}
+    project_settings = get_project_settings()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.task_queue_name = f"{self.name}_task_queue"
-        self.result_queue_name = f"{self.name}_result_queue"
-        self.reply_to_queue_name = f"{self.name}_reply_queue"
+        self.task_queue_name = (f"{self.project_settings.get('RMQ_DOMAIN_QUEUE_MAP').get(self.domain)}"
+                                f"_products_task_queue")
+        self.reply_to_queue_name = self.project_settings.get("RMQ_PRODUCT_REPLY_QUEUE")
+        self.result_queue_name = self.project_settings.get("RMQ_PRODUCT_RESULT_QUEUE")
         self.completion_strategy = RPCTaskConsumer.CompletionStrategies.REQUESTS_BASED
 
     def next_request(self, _delivery_tag: str, msg_body: str) -> Request:

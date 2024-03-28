@@ -14,17 +14,19 @@ from items import ProductItem
 
 class ZoroCategorySpider(TaskToSingleResultSpider):
     name = "zoro_category_spider"
+    domain = "www.zoro.com"
     custom_settings = {"ITEM_PIPELINES": {get_import_full_name(ItemProducerPipeline): 310}}
     project_settings = get_project_settings()
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.task_queue_name = "zoro_task_category"
-        self.result_queue_name = "products_result_queue"
-        self.reply_to_queue_name = self.project_settings.get("CATEGORY_REPLY_QUEUE")
+        self.task_queue_name = (f'{self.project_settings.get("RMQ_DOMAIN_QUEUE_MAP").get(self.domain)}'
+                                f'_category_task_queue')
+        self.reply_to_queue_name = self.project_settings.get("RMQ_CATEGORY_REPLY_QUEUE")
+        self.result_queue_name = self.project_settings.get("RMQ_PRODUCT_RESULT_QUEUE")
         self.completion_strategy = RPCTaskConsumer.CompletionStrategies.REQUESTS_BASED
         self.headers = {
-            "apikey": "924526ffbdad25e5923b",
+            "apikey": self.project_settings.get("ZORO_SPIDER_API_KEY"),
         }
         self.base_url = "https://api.prod.zoro.com"
         self.pagination_size = 36

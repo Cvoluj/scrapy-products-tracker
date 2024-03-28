@@ -16,7 +16,7 @@ class ProduceCategory(CSVProducer):
 
     def __init__(self):
         super().__init__()
-        self.domain_queue_map = {domain: f'{queue}_category' for domain, queue in self.domain_queue_map.items()}
+        self.domain_queue_map = {domain: f'{queue}_category_task_queue' for domain, queue in self.domain_queue_map.items()}
 
     def build_task_query_stmt(self, chunk_size):
         """This method must returns sqlalchemy Executable or string that represents valid raw SQL select query
