@@ -1,21 +1,25 @@
 import json
 
 from sqlalchemy.dialects.mysql import insert
-
+from sqlalchemy.sql import select, func
+from twisted.internet import defer
+from sqlalchemy.sql import ClauseElement
 from rmq.commands import Consumer
 from database.models import ProductTargets, ProductHistory
 from rmq.utils import TaskStatusCodes
 from rmq.utils.sql_expressions import compile_expression
+import logging
 
 
 class ResultConsumer(Consumer):
     def __init__(self):
         super().__init__()
         self.queue_name = self.project_settings.get("RMQ_PRODUCT_RESULT_QUEUE")
+        self.logger = logging.getLogger(__name__)
 
     def build_message_store_stmt(self, message_body):
         product_target_stmt = insert(ProductTargets).values(
-            external_id=message_body.get('url'),
+            url=message_body.get('url'),
             title=message_body.get('title'),
             description=message_body.get('description'),
             brand=message_body.get('brand'),
@@ -34,7 +38,7 @@ class ResultConsumer(Consumer):
         )
 
         product_history_stmt = insert(ProductHistory).values(
-            product_external_id=message_body.get('url'),
+            product_id=None,
             regular_price=message_body.get('regular_price'),
             current_price=message_body.get('current_price'),
             is_in_stock=message_body.get('is_in_stock'),
@@ -49,6 +53,17 @@ class ResultConsumer(Consumer):
 
         transaction.execute(*compile_expression(product_target_stmt))
 
+        select_stmt = select(ProductTargets.id).where(ProductTargets.url == message_body.get('url'))
+        if isinstance(select_stmt, ClauseElement):
+            transaction.execute(*compile_expression(select_stmt))
+        else:
+            transaction.execute(select_stmt)
+        result = transaction.fetchone()
+        self.logger.debug(result)
+        product_history_stmt = product_history_stmt.values(product_id=result.get('id'))
         transaction.execute(*compile_expression(product_history_stmt))
 
         return True
+
+
+

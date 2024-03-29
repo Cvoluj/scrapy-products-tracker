@@ -9,7 +9,6 @@ class ProductTargets(Base, MysqlPrimaryKeyMixin, MysqlStatusMixin, MysqlExceptio
     __tablename__ = 'product_targets'
 
     url = Column("url", String(768), unique=True, nullable=False)
-    external_id = Column('external_id', String(768), unique=True, nullable=False)
     domain = Column('domain', String(255), nullable=False)
     title = Column('title', String(255), unique=False, nullable=True)
     description = Column('description', TEXT())
