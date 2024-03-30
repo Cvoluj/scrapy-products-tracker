@@ -12,7 +12,6 @@ class ProductItem(RMQItem):
     image_file = scrapy.Field()
     additional_info = scrapy.Field()
 
-    product_id = scrapy.Field()
     regular_price = scrapy.Field()
     current_price = scrapy.Field()
     is_in_stock = scrapy.Field()
