@@ -1,33 +1,20 @@
-from sqlalchemy import Column, text, String
-from sqlalchemy.dialects.mysql import MEDIUMINT, INTEGER, BIGINT, TIMESTAMP, TEXT
+from sqlalchemy import Column, String, text, ForeignKey
+from sqlalchemy.dialects.mysql import TEXT, JSON, BOOLEAN, INTEGER, BIGINT
 
 from database.models import Base
+from .mixins import MysqlPrimaryKeyMixin, MysqlStatusMixin, MysqlExceptionMixin, MysqlTimestampsMixin
 
 
-class ProductTargets(Base):
+class ProductTargets(Base, MysqlPrimaryKeyMixin, MysqlStatusMixin, MysqlExceptionMixin, MysqlTimestampsMixin):
     __tablename__ = 'product_targets'
 
-    id = Column("id", BIGINT(unsigned=True), primary_key=True, autoincrement=True)
-    target_url = Column("target_url", String(255), unique=True, nullable=False)
-    external_id = Column('external_id', String(255), unique=True, nullable=False)
-    category = Column('category', String(255))
-    position = Column('position', INTEGER(unsigned=True), server_defailt=text("0"))
-    created_at = Column("created_at", TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"),)
-    updated_at = Column(
-        "updated_at",
-        TIMESTAMP,
-        nullable=False,
-        index=True,
-        unique=False,
-        server_default=text("CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP"),
-        server_onupdate=text("CURRENT_TIMESTAMP"),
-    )
-    status = Column(
-        "status",
-        MEDIUMINT(unsigned=True),
-        index=True,
-        unique=False,
-        nullable=False,
-        server_default=text("0"),
-    )
-    exception = Column("exception", TEXT(), nullable=True, unique=False)
+    url = Column("url", String(768), unique=True, nullable=False)
+    domain = Column('domain', String(255), nullable=False)
+    title = Column('title', String(255), unique=False, nullable=True)
+    description = Column('description', TEXT())
+    brand = Column('brand', String(255))
+    image_url = Column('image_url', String(255))
+    image_file = Column('image_file', String(255))
+    additional_info = Column('additional_info', JSON)
+    is_tracked = Column('is_tracked', BOOLEAN, nullable=False, server_default=text("True"))
+    position = Column('position', INTEGER(unsigned=True))
