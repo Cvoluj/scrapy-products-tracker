@@ -25,8 +25,8 @@ class CustominkCategorySpider(TaskToMultipleResultsSpider):
         self.reply_to_queue_name = self.project_settings.get("RMQ_CATEGORY_REPLY_QUEUE")
 
         self.headers = {
-            "x-algolia-api-key": "536d13eb752f1c8946764f0810a8ec4f",
-            "x-algolia-application-id": "S0RXN4TV6T"
+            "x-algolia-api-key": self.project_settings.get("CUSTOMINK_SPIDER_API_KEY"),
+            "x-algolia-application-id": self.project_settings.get("CUSTOMINK_SPIDER_APPLICATION_ID")
         }
 
     def next_request(self, _delivery_tag, msg_body):
