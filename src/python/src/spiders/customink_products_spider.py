@@ -1,12 +1,8 @@
 import json
 from urllib.parse import unquote, urlparse
-
 import scrapy
 from scrapy.core.downloader.handlers.http11 import TunnelError
-from scrapy.spidermiddlewares.httperror import HttpError
-
 from scrapy.utils.project import get_project_settings
-
 from items import ProductItem
 from rmq.pipelines import ItemProducerPipeline
 from rmq.spiders import TaskToMultipleResultsSpider
@@ -16,9 +12,14 @@ from rmq.utils.decorators import rmq_callback, rmq_errback
 
 class CustominkProductsSpider(TaskToMultipleResultsSpider):
     name = "customink_products_spider"
-    start_urls = "https://www.customink.com"
     domain = "www.customink.com"
-    custom_settings = {"ITEM_PIPELINES": {get_import_full_name(ItemProducerPipeline): 310}}
+    start_urls = "https://www.customink.com"
+    custom_settings = {
+        "ITEM_PIPELINES": {
+            'pipelines.SaveImagesPipeline': 200,
+            get_import_full_name(ItemProducerPipeline): 310,
+        }
+    }
     project_settings = get_project_settings()
 
     def __init__(self, *args, **kwargs):
@@ -32,7 +33,6 @@ class CustominkProductsSpider(TaskToMultipleResultsSpider):
         data = json.loads(msg_body)
         return scrapy.Request(url=data["url"],
                               callback=self.parse,
-                              meta={'delivery_tag': _delivery_tag},
                               errback=self.errback,
                               dont_filter=True)
 
@@ -53,38 +53,38 @@ class CustominkProductsSpider(TaskToMultipleResultsSpider):
 
         item["title"] = data_json.get("name")
         item["description"] = data_json.get("description")
-        item["brand"] = data_json.get("brand").get("name")
+        item["brand"] = data_json.get("brand", {}).get("name")
         item["image_url"] = urlparse(unquote(data_json.get("image"))).path.lstrip('/')
 
-        # item["img"] = item["image_url"]
+        item["image_file"] = f'{item["url"].split("/")[2].split(".")[1]}_{item["url"].split("/")[-1].split(".")[0]}.jpg'
 
-        item["current_price"] = float(data_json.get("offers").get("price")) / float(data_json.get("offers").get("eligibleQuantity").get("value"))
+        try:
+            item["current_price"] = float(data_json.get("offers").get("price")) / float(data_json.get("offers").get("eligibleQuantity").get("value"))
+        except:
+            item["current_price"] = 0
 
         item["regular_price"] = item["current_price"]
 
-        item["additional_info"] = {
-            "category": data_json.get("category").get("name"),
+        item["additional_info"] = json.dumps({
+            "category": data_json.get("category", {}).get("name", "No"),
             "rating_value": data_json.get("aggregateRating", {}).get("ratingValue", "No"),
             "rating_count": data_json.get("aggregateRating", {}).get("ratingCount", "No"),
-        }
-
-        # delete and generate in the database
-        item["stock"] = 1
-        item["is_in_stock"] = True
-        # item["delivery_tag"] = 1
+        })
+        stock = data_json.get("offers", {}).get("availability")
+        if stock == "http://schema.org/InStock":
+            item["stock"] = 1
+            item["is_in_stock"] = True
+        else:
+            item["stock"] = 0
+            item["is_in_stock"] = False
 
         yield item
 
 
     @rmq_errback
     def errback(self, failure):
-        if failure.check(HttpError):
-            response = failure.value.response
-            if response.status == 404:
-                self.logger.warning("404 Not Found. Changing status in queue")
-        elif failure.check(TunnelError):
-            response = failure.value.response
-            if response.status == 429:
-                self.logger.info("429 TunnelError. Copy request")
-                yield failure.request.copy()
-        self.logger.warning(f"IN ERRBACK: {repr(failure)}")
+        if failure.check(TunnelError):
+            self.logger.info("TunnelError. Copy request")
+            yield failure.request.copy()
+        else:
+            self.logger.warning(f"IN ERRBACK: {repr(failure)}")

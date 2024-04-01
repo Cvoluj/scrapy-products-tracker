@@ -16,6 +16,7 @@ BOT_NAME = "YOUR_PROJECT_NAME"
 SPIDER_MODULES = ["spiders"]
 NEWSPIDER_MODULE = "spiders"
 COMMANDS_MODULE = "commands"
+IMAGES_STORE = 'images'
 
 ZORO_SPIDER_API_KEY = os.getenv("ZORO_SPIDER_API_KEY", "")
 

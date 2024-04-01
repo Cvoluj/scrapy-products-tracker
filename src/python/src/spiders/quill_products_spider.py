@@ -1,10 +1,7 @@
 import json
-
 import scrapy
 from scrapy.core.downloader.handlers.http11 import TunnelError
-from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.utils.project import get_project_settings
-
 from items import ProductItem
 from rmq.pipelines import ItemProducerPipeline
 from rmq.spiders import TaskToMultipleResultsSpider
@@ -16,7 +13,12 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
     name = "quill_products_spider"
     domain = "www.quill.com"
     start_urls = "https://www.quill.com"
-    custom_settings = {"ITEM_PIPELINES": {get_import_full_name(ItemProducerPipeline): 310}}
+    custom_settings = {
+        "ITEM_PIPELINES": {
+            'pipelines.SaveImagesPipeline': 200,
+            get_import_full_name(ItemProducerPipeline): 310,
+        }
+    }
     project_settings = get_project_settings()
 
     def __init__(self, *args, **kwargs):
@@ -26,12 +28,17 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
         self.reply_to_queue_name = self.project_settings.get("RMQ_PRODUCT_REPLY_QUEUE")
         self.result_queue_name = self.project_settings.get("RMQ_PRODUCT_RESULT_QUEUE")
 
-    def next_request(self, _delivery_tag, msg_body):
-        data = json.loads(msg_body)
-        return scrapy.Request(data["url"],
-                              callback=self.parse,
-                              errback=self.errback,
-                              dont_filter=True)
+    # def next_request(self, _delivery_tag, msg_body):
+    #     data = json.loads(msg_body)
+    #     return scrapy.Request(data["url"],
+    #                           callback=self.parse,
+    #                           errback=self.errback,
+    #                           dont_filter=True)
+
+    def start_requests(self):
+        urls = ['https://www.quill.com/nescafe-espresso-whole-bean-coffee-medium-roast-3527-oz-6-carton-12338492/cbs/55421487.html']
+        for i in urls:
+            yield scrapy.Request(url=i, callback=self.parse)
 
     @rmq_callback
     def parse(self, response):
@@ -49,8 +56,10 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
         else:
             item["brand"] = brand
 
-        # item["img"] = 'https:' + response.xpath('//div[contains(@class, "skuImageZoom")]/img/@src').get()
-        item["image_url"] = 'https:' + response.xpath('//div[contains(@class, "skuImageZoom")]/img/@src').get()
+        item["image_url"] = response.urljoin(response.xpath(
+            '//div[contains(@class, "skuImageZoom")]/img/@src').get())
+
+        item["image_file"] = f'{item["url"].split("/")[2].split(".")[1]}_{item["url"].split("/")[-1].split(".")[0]}.jpg'
 
         current_price = response.xpath(
             '//div[@class="row no-gutters"]//div[contains(@class, "pricing-wrap")]/div/div/span'
@@ -76,26 +85,27 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
             for element in additional_info_keys:
                 additional_info[element.strip()] = response.xpath(
                     f'//div[span/text()="{element}"]/following-sibling::div[1]/text()').get(default="No").strip()
-            item["additional_info"] = additional_info
+            item["additional_info"] = json.dumps(additional_info)
         else:
             item["additional_info"] = None
 
-        # delete and generate in the database
-        item["stock"] = 1
-        item["is_in_stock"] = True
+        stock = response.xpath(
+            '//div[contains(@class, "no-gutters")]/div[contains(@class, "sku-promo-image")]/div[contains(@class, '
+            '"promo-flag")]/text()').get(default="No").strip()
+        if stock == "Out of stock":
+            item["stock"] = 0
+            item["is_in_stock"] = False
+        else:
+            item["stock"] = 1
+            item["is_in_stock"] = True
 
         yield item
 
 
     @rmq_errback
     def errback(self, failure):
-        if failure.check(HttpError):
-            response = failure.value.response
-            if response.status == 404:
-                self.logger.warning("404 Not Found. Changing status in queue")
-        elif failure.check(TunnelError):
-            response = failure.value.response
-            if response.status == 429:
-                self.logger.info("429 TunnelError. Copy request")
-                yield failure.request.copy()
-        self.logger.warning(f"IN ERRBACK: {repr(failure)}")
+        if failure.check(TunnelError):
+            self.logger.info("TunnelError. Copy request")
+            yield failure.request.copy()
+        else:
+            self.logger.warning(f"IN ERRBACK: {repr(failure)}")

@@ -1,10 +1,7 @@
 import json
-
 import scrapy
 from scrapy.core.downloader.handlers.http11 import TunnelError
-from scrapy.spidermiddlewares.httperror import HttpError
 from scrapy.utils.project import get_project_settings
-
 from items import ProductItem
 from rmq.pipelines import ItemProducerPipeline
 from rmq.spiders import TaskToMultipleResultsSpider
@@ -79,28 +76,24 @@ class CustominkCategorySpider(TaskToMultipleResultsSpider):
         position = response.meta['position']
 
         resp = json.loads(response.body).get("results")[0].get("hits")
-        default_quantity = json.loads(response.body).get("results")[0].get("userData")[0].get("defaultQuoteQty")
+        # default_quantity = json.loads(response.body).get("results")[0].get("userData")[0].get("defaultQuoteQty")
 
         for i in resp:
             position = position + 1
             item["position"] = position
-            # item["title"] = i.get("name")
-            # print(i.get("name"))
 
             item["url"] = self.start_urls + i.get("breadcrumbs")[-1].get("path")
 
-            item["current_price"] = 0
-            for j in i.get("default_unit_prices")[:-1]:
-                if j.get("quantity") == default_quantity:
-                    item["current_price"] = j.get("price")
-                    break
-
-            item["regular_price"] = item["current_price"]
-
-            # delete and generate in the database
-            item["stock"] = 1
-            item["is_in_stock"] = True
-            # item["delivery_tag"] = 1
+            # item["current_price"] = None
+            # for j in i.get("default_unit_prices")[::-1]:
+            #     if j.get("quantity") == default_quantity:
+            #         item["current_price"] = j.get("price")
+            #         break
+            #
+            # item["regular_price"] = item["current_price"]
+            #
+            # item["stock"] = 1
+            # item["is_in_stock"] = True
 
             yield item
 
@@ -114,14 +107,9 @@ class CustominkCategorySpider(TaskToMultipleResultsSpider):
 
     @rmq_errback
     def errback(self, failure):
-        if failure.check(HttpError):
-            response = failure.value.response
-            if response.status == 404:
-                self.logger.warning("404 Not Found. Changing status in queue")
-        elif failure.check(TunnelError):
-            response = failure.value.response
-            if response.status == 429:
-                self.logger.info("429 TunnelError. Copy request")
-                yield failure.request.copy()
-        self.logger.warning(f"IN ERRBACK: {repr(failure)}")
+        if failure.check(TunnelError):
+            self.logger.info("TunnelError. Copy request")
+            yield failure.request.copy()
+        else:
+            self.logger.warning(f"IN ERRBACK: {repr(failure)}")
 

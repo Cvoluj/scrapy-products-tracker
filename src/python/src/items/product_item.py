@@ -9,6 +9,7 @@ class ProductItem(RMQItem):
     description = scrapy.Field()
     brand = scrapy.Field()
     image_url = scrapy.Field()
+    image_file = scrapy.Field()
     additional_info = scrapy.Field()
 
     regular_price = scrapy.Field()

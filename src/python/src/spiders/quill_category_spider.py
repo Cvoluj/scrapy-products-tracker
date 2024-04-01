@@ -1,9 +1,6 @@
 import json
-
 import scrapy
 from scrapy.core.downloader.handlers.http11 import TunnelError
-from scrapy.spidermiddlewares.httperror import HttpError
-
 from items import ProductItem
 from rmq.pipelines import ItemProducerPipeline
 from rmq.spiders import TaskToMultipleResultsSpider
@@ -34,6 +31,11 @@ class QuillCategorySpider(TaskToMultipleResultsSpider):
                               errback=self.errback,
                               dont_filter=True)
 
+    # def start_requests(self):
+    #     urls = ['https://www.quill.com/whole-bean-coffee/cbk/53110.html']
+    #     for i in urls:
+    #         yield scrapy.Request(url=i, callback=self.parse, meta={'position': 0}, errback=self.errback)
+
     @rmq_callback
     def parse(self, response):
         item = ProductItem()
@@ -51,25 +53,6 @@ class QuillCategorySpider(TaskToMultipleResultsSpider):
                 '/a[contains(@class, "blue-hover-link")]/@href').get()
             item["url"] = response.urljoin(product_link)
 
-            current_price = product.xpath(
-                './/div[contains(@class, "price-break")]/div[contains(@class, "pricing-wrap")][1]/div/div[contains'
-                '(@class, "savings-highlight-wrap")]/span[contains(@class, "price-size")]/text()').get()
-            if current_price:
-                item["current_price"] = current_price.strip().replace("$", "")
-            else:
-                item["current_price"] = current_price
-
-            regular_price = product.xpath(
-                './/span[contains(@class, "elp-percentage")]/del/text()').get()
-            if regular_price:
-                item["regular_price"] = regular_price.strip().replace("$", "")
-            else:
-                item["regular_price"] = item["current_price"]
-
-            # delete and generate in the database
-            item["stock"] = 1
-            item["is_in_stock"] = True
-            # Для quill доробити "https://www.quill.com/whole-bean-coffee/cbk/53110.html?vf=Whole+bean"
             yield item
 
         next_page = response.xpath(
@@ -79,13 +62,8 @@ class QuillCategorySpider(TaskToMultipleResultsSpider):
 
     @rmq_errback
     def errback(self, failure):
-        if failure.check(HttpError):
-            response = failure.value.response
-            if response.status == 404:
-                self.logger.warning("404 Not Found. Changing status in queue")
-        elif failure.check(TunnelError):
-            response = failure.value.response
-            if response.status == 429:
-                self.logger.info("429 TunnelError. Copy request")
-                yield failure.request.copy()
-        self.logger.warning(f"IN ERRBACK: {repr(failure)}")
+        if failure.check(TunnelError):
+            self.logger.info("TunnelError. Copy request")
+            yield failure.request.copy()
+        else:
+            self.logger.warning(f"IN ERRBACK: {repr(failure)}")
