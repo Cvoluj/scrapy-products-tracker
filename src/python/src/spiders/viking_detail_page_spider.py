@@ -119,7 +119,7 @@ class VikingDetailPageSpiderSpider(TaskToSingleResultSpider):
             try:
                 data_dict = json.loads(json_object_str)
                 item["current_price"] = float(
-                    data_dict.get("skuInfo").get("price")[0]["skuPriceexVAT"]
+                    data_dict.get("skuInfo").get("price")[0]["skuPriceinVAT"]
                 )
                 item["product_id"] = f"viking_{data_dict.get('skuInfo').get('skuID')}"
             except json.JSONDecodeError as e:
