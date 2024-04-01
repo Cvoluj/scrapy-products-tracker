@@ -76,24 +76,12 @@ class CustominkCategorySpider(TaskToMultipleResultsSpider):
         position = response.meta['position']
 
         resp = json.loads(response.body).get("results")[0].get("hits")
-        # default_quantity = json.loads(response.body).get("results")[0].get("userData")[0].get("defaultQuoteQty")
 
         for i in resp:
             position = position + 1
             item["position"] = position
 
             item["url"] = self.start_urls + i.get("breadcrumbs")[-1].get("path")
-
-            # item["current_price"] = None
-            # for j in i.get("default_unit_prices")[::-1]:
-            #     if j.get("quantity") == default_quantity:
-            #         item["current_price"] = j.get("price")
-            #         break
-            #
-            # item["regular_price"] = item["current_price"]
-            #
-            # item["stock"] = 1
-            # item["is_in_stock"] = True
 
             yield item
 

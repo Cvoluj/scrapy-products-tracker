@@ -29,17 +29,17 @@ class CustominkProductsSpider(TaskToMultipleResultsSpider):
         self.reply_to_queue_name = self.project_settings.get("RMQ_PRODUCT_REPLY_QUEUE")
         self.result_queue_name = self.project_settings.get("RMQ_PRODUCT_RESULT_QUEUE")
 
-    def next_request(self, _delivery_tag, msg_body):
-        data = json.loads(msg_body)
-        return scrapy.Request(url=data["url"],
-                              callback=self.parse,
-                              errback=self.errback,
-                              dont_filter=True)
+    # def next_request(self, _delivery_tag, msg_body):
+    #     data = json.loads(msg_body)
+    #     return scrapy.Request(url=data["url"],
+    #                           callback=self.parse,
+    #                           errback=self.errback,
+    #                           dont_filter=True)
 
-    # def start_requests(self):
-    #     urls = ['https://www.customink.com/products/kids/kids-hats/rabbit-skins-baby-rib-hat/1125900']
-    #     for i in urls:
-    #         yield scrapy.Request(url=i, callback=self.parse)
+    def start_requests(self):
+        urls = ['https://www.customink.com/products/kids/kids-hats/rabbit-skins-baby-rib-hat/1125900']
+        for i in urls:
+            yield scrapy.Request(url=i, callback=self.parse)
 
     @rmq_callback
     def parse(self, response):
@@ -58,12 +58,13 @@ class CustominkProductsSpider(TaskToMultipleResultsSpider):
 
         item["image_file"] = f'{item["url"].split("/")[2].split(".")[1]}_{item["url"].split("/")[-1].split(".")[0]}.jpg'
 
-        try:
-            item["current_price"] = float(data_json.get("offers").get("price")) / float(data_json.get("offers").get("eligibleQuantity").get("value"))
-        except:
-            item["current_price"] = 0
+        item["current_price"] = data_json.get("offers", {}).get("price")
+        item["units"] = f'Per {data_json.get("offers", {}).get("eligibleQuantity", {}).get("value")} items'
 
         item["regular_price"] = item["current_price"]
+
+        currency_dict = {"USD": "$"}
+        item["currency"] = currency_dict.get(data_json.get("offers", {}).get("priceCurrency"))
 
         item["additional_info"] = json.dumps({
             "category": data_json.get("category", {}).get("name", "No"),

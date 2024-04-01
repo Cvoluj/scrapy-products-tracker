@@ -60,17 +60,23 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
 
         item["image_file"] = f'{item["url"].split("/")[2].split(".")[1]}_{item["url"].split("/")[-1].split(".")[0]}.jpg'
 
-        current_price = response.xpath(
-            '//div[@class="row no-gutters"]//div[contains(@class, "pricing-wrap")]/div/div/span'
-            '[contains(@class, "price-size") and contains(text(), "$")]/text()').get()
+        product_card = response.xpath('//div[@class="row no-gutters"]')
+        current_price = product_card.xpath(
+            './/div[contains(@class, "pricing-wrap")]/div/div/span[contains(@class, "price-size") and contains(text('
+            '), "$")]/text()').get()
         if current_price:
             item["current_price"] = current_price.strip().replace("$", "")
+            item["currency"] = current_price.strip()[0]
         else:
             item["current_price"] = current_price
+            item["currency"] = None
 
-        regular_price = response.xpath(
-            '//div[@class="row no-gutters"]//div[contains(@class, "pricing-wrap")]/div/span'
-            '[contains(@class, "elp-percentage")]/del[contains(text(), "$")]/text()').get()
+        item["units"] = product_card.xpath(
+            './/div[contains(@class, "pricing-wrap")]/div/div[contains(@class, "selling-uom")]/text()').get()
+
+        regular_price = product_card.xpath(
+            './/div[contains(@class, "pricing-wrap")]/div/span[contains(@class, "elp-percentage")]/del[contains('
+            'text(), "$")]/text()').get()
         if regular_price:
             item["regular_price"] = regular_price.strip().replace("$", "")
         else:
