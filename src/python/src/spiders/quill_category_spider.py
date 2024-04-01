@@ -40,14 +40,12 @@ class QuillCategorySpider(TaskToMultipleResultsSpider):
     def parse(self, response):
         item = ProductItem()
         position = response.meta['position']
-
         product_list = response.xpath(
             '//div[contains(@class, "gridView") and contains(@class, "search-product-card-wrap")]')
 
         for product in product_list:
             position = position + 1
             item["position"] = position
-
             product_link = product.xpath(
                 './/span[contains(@class, "search-product-name-wrap")]'
                 '/a[contains(@class, "blue-hover-link")]/@href').get()

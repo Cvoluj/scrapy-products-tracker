@@ -43,7 +43,6 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
     @rmq_callback
     def parse(self, response):
         item = ProductItem()
-
         item["url"] = response.url
         item["title"] = response.xpath(
             '//div[@id="SkuMainContentDiv"]/h1[contains(@class, "m-sku-title")]/text()').get()

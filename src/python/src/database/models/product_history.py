@@ -8,8 +8,8 @@ from .mixins import MysqlPrimaryKeyMixin
 class ProductHistory(Base, MysqlPrimaryKeyMixin):
     __tablename__ = 'product_history'
 
-    product_external_id = Column(
-        'product_external_id', String(768), ForeignKey('product_targets.external_id'), nullable=False
+    product_id = Column(
+        'product_id', BIGINT(unsigned=True), ForeignKey('product_targets.id'), nullable=False
     )
     regular_price = Column('regular_price', DECIMAL(20, 2))
     current_price = Column('current_price', DECIMAL(20, 2))

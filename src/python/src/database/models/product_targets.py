@@ -9,7 +9,6 @@ class ProductTargets(Base, MysqlPrimaryKeyMixin, MysqlStatusMixin, MysqlExceptio
     __tablename__ = 'product_targets'
 
     url = Column("url", String(768), unique=True, nullable=False)
-    external_id = Column('external_id', String(768), unique=True, nullable=False)
     domain = Column('domain', String(255), nullable=False)
     title = Column('title', String(255), unique=False, nullable=True)
     description = Column('description', TEXT())
@@ -19,3 +18,4 @@ class ProductTargets(Base, MysqlPrimaryKeyMixin, MysqlStatusMixin, MysqlExceptio
     additional_info = Column('additional_info', JSON)
     is_tracked = Column('is_tracked', BOOLEAN, nullable=False, server_default=text("True"))
     position = Column('position', INTEGER(unsigned=True))
+    session = Column('session', BIGINT(unsigned=True), ForeignKey('sessions.id'))
