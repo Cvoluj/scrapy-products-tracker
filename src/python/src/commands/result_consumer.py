@@ -70,3 +70,6 @@ class ResultConsumer(Consumer):
         transaction.execute(*compile_expression(product_history_stmt))
 
         return True
+
+
+
