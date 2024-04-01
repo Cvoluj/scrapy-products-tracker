@@ -22,4 +22,3 @@ class FromCategoryResultConsumer(Consumer):
         )
 
         return product_targets_stmt
-

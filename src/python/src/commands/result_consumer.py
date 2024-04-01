@@ -1,12 +1,10 @@
-import json, pika, functools
+import json
 from sqlalchemy.dialects.mysql import insert
-from sqlalchemy.sql import select, func
-from twisted.internet import defer
+from sqlalchemy.sql import select, desc
 from sqlalchemy.sql import ClauseElement
 from rmq.commands import Consumer
-from database.models import ProductTargets, ProductHistory
+from database.models import ProductTargets, ProductHistory, Sessions
 from rmq.utils import TaskStatusCodes
-from rmq.utils.decorators import call_once
 from rmq.utils.sql_expressions import compile_expression
 import logging
 
@@ -14,7 +12,6 @@ import logging
 class ResultConsumer(Consumer):
     def __init__(self):
         super().__init__()
-        self.session_id = None
         self.queue_name = self.project_settings.get("RMQ_PRODUCT_RESULT_QUEUE")
         self.logger = logging.getLogger(__name__)
 
@@ -45,7 +42,6 @@ class ResultConsumer(Consumer):
             is_in_stock=message_body.get('is_in_stock'),
             stock=message_body.get('stock'),
             position=message_body.get('position'),
-            session=self.session_id
         )
 
         return product_target_stmt, product_history_stmt
@@ -61,11 +57,16 @@ class ResultConsumer(Consumer):
         else:
             transaction.execute(select_stmt)
         result = transaction.fetchone()
+
+        get_session_stmt = select(Sessions).order_by(desc(Sessions.id)).limit(1)
+        transaction.execute(*compile_expression(get_session_stmt))
+        session = transaction.fetchone()
+        
         self.logger.debug(result)
-        product_history_stmt = product_history_stmt.values(product_id=result.get('id'))
+        product_history_stmt = product_history_stmt.values(
+            product_id=result.get('id'), 
+            session=session['id']
+            )
         transaction.execute(*compile_expression(product_history_stmt))
 
         return True
-
-
-

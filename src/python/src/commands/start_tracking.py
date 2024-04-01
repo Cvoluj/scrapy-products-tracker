@@ -1,7 +1,7 @@
 from argparse import Namespace
 from scrapy.commands import ScrapyCommand
 from twisted.internet import reactor, task
-from sqlalchemy import update, select, desc
+from sqlalchemy import update, select, desc, and_
 from sqlalchemy.dialects.mysql import Insert, insert
 from rmq.utils.sql_expressions import compile_expression
 from rmq.utils import TaskStatusCodes
@@ -22,6 +22,7 @@ class StartTracking(BaseCommand):
         self.minutes = None
         self.model = None
         self.session_file = None
+        self.session_id = None
         self.conn = get_db()
 
     def add_options(self, parser):
@@ -105,30 +106,30 @@ class StartTracking(BaseCommand):
         self.init_model_name(opts)      
 
         delay = ((self.days or 0) * 86400) + ((self.hours or 0) * 3600) + ((self.minutes or 0) * 10)
-
+        
         repeat_session_task = task.LoopingCall(self.repeat_session)
         reactor.callLater(delay, repeat_session_task.start, delay)
                     
-    def update_status(self):
-        try:
-            stmt = update(self.model).where(self.model.is_tracked == 1).values(status=TaskStatusCodes.NOT_PROCESSED)
-            self.conn.runQuery(*compile_expression(stmt))
-        except Exception as e:
-            self.loggerr.error("Error updating item: %s", e)
-
-    def repeat_session(self):
-        d = self.get_session()
-        d.addCallback(lambda _: self.update_session())
-        d.addCallback(lambda _: self.update_status())
-
-        self.logger.warning('STATUS WERE UPDATED')
-
     def update_session(self):
         try:
             stmt: Insert = insert(Sessions).values(csv_file=self.session_file)
             return self.conn.runQuery(*compile_expression(stmt))
         except Exception as e:
             self.logger.error("Error inserting item: %s", e)
+    
+    def update_status(self):
+        try:
+            stmt = update(self.model).where(self.model.is_tracked == 1).values(status=TaskStatusCodes.NOT_PROCESSED,
+                                                                               session=self.session_id)
+            self.conn.runQuery(*compile_expression(stmt))
+        except Exception as e:
+            self.loggerr.error("Error updating item: %s", e)
+    
+    def repeat_session(self):
+        d = self.update_session()
+        d.addCallback(lambda _: self.get_session())
+        d.addCallback(lambda _: self.update_status())
+        self.logger.warning('STATUS WERE UPDATED')
 
     def run(self, args: list[str], opts: Namespace):
         reactor.callLater(0, self.execute, args, opts)
