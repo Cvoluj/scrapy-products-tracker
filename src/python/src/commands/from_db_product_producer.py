@@ -16,6 +16,7 @@ class ProduceUrl(DomainProducer):
     def __init__(self):
         super().__init__()
         self.domain_queue_map = {domain: f'{queue}_products_task_queue' for domain, queue in self.domain_queue_map.items()}
+        self.reply_to_queue_name = self.project_settings.get("RMQ_PRODUCT_REPLY_QUEUE")
 
     def build_task_query_stmt(self, chunk_size):
         """This method must returns sqlalchemy Executable or string that represents valid raw SQL select query
