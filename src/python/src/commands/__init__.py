@@ -1,3 +1,3 @@
 from .abstract.csv_producer import CSVProducer
-from .result_consumer import ResultConsumer
-from .from_category_result_consumer import FromCategoryResultConsumer
+from .product_result_consumer import ProductResultConsumer
+from .category_result_consumer import CategoryResultConsumer
