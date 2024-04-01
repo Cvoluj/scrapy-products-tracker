@@ -1,5 +1,4 @@
-import json
-
+import json, pika, functools
 from sqlalchemy.dialects.mysql import insert
 from sqlalchemy.sql import select, func
 from twisted.internet import defer
@@ -7,6 +6,7 @@ from sqlalchemy.sql import ClauseElement
 from rmq.commands import Consumer
 from database.models import ProductTargets, ProductHistory
 from rmq.utils import TaskStatusCodes
+from rmq.utils.decorators import call_once
 from rmq.utils.sql_expressions import compile_expression
 import logging
 
@@ -14,8 +14,18 @@ import logging
 class ResultConsumer(Consumer):
     def __init__(self):
         super().__init__()
+        self.session_id = None
         self.queue_name = self.project_settings.get("RMQ_PRODUCT_RESULT_QUEUE")
         self.logger = logging.getLogger(__name__)
+
+    def get_session(self):
+        stmt = select(Sessions).order_by(desc(Sessions.id)).limit(1)
+        deferred = self.db_connection_pool.runQuery(*compile_expression(stmt))
+        deferred.addCallback(self.handle_session_result)
+        return deferred
+
+    def handle_session_result(self, result):
+        self.session_id = result[0]['id'] if result else None
 
     def build_message_store_stmt(self, message_body):
         product_target_stmt = insert(ProductTargets).values(
@@ -43,7 +53,8 @@ class ResultConsumer(Consumer):
             current_price=message_body.get('current_price'),
             is_in_stock=message_body.get('is_in_stock'),
             stock=message_body.get('stock'),
-            position=message_body.get('position')
+            position=message_body.get('position'),
+            session=self.session_id
         )
 
         return product_target_stmt, product_history_stmt

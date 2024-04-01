@@ -67,7 +67,7 @@ class QuillCategorySpider(TaskToMultipleResultsSpider):
             # delete and generate in the database
             item["stock"] = 1
             item["is_in_stock"] = True
-
+            # Для quill доробити "https://www.quill.com/whole-bean-coffee/cbk/53110.html?vf=Whole+bean"
             yield item
 
         next_page = response.xpath(
