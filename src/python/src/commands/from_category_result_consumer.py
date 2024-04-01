@@ -16,9 +16,11 @@ class FromCategoryResultConsumer(Consumer):
         product_targets_stmt = insert(ProductTargets).values(
             # position=message_body.get('position'),
             url=url,
-            domain=furl(url).netloc
+            domain=furl(url).netloc,
+            session=message_body.get('session')
         ).on_duplicate_key_update(
-            status=TaskStatusCodes.NOT_PROCESSED.value
+            status=TaskStatusCodes.NOT_PROCESSED.value,
+            session=message_body.get('session')
         )
 
         return product_targets_stmt

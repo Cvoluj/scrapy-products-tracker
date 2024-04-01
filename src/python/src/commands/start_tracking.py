@@ -98,6 +98,7 @@ class StartTracking(BaseCommand):
     
     def handle_session_result(self, result):
         self.session_file = result[0].get('csv_file') if result else None
+        self.session_id = result[0].get('id') if result else None
 
     def execute(self, args, opts: Namespace):
         self.init_days(opts)
@@ -119,8 +120,12 @@ class StartTracking(BaseCommand):
     
     def update_status(self):
         try:
-            stmt = update(self.model).where(self.model.is_tracked == 1).values(status=TaskStatusCodes.NOT_PROCESSED,
-                                                                               session=self.session_id)
+            self.logger.warning(self.session_id)
+            stmt = update(self.model).where(self.model.is_tracked == 1).values(
+                status=TaskStatusCodes.NOT_PROCESSED,
+                session=self.session_id
+            )
+
             self.conn.runQuery(*compile_expression(stmt))
         except Exception as e:
             self.loggerr.error("Error updating item: %s", e)

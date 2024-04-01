@@ -42,6 +42,7 @@ class ResultConsumer(Consumer):
             is_in_stock=message_body.get('is_in_stock'),
             stock=message_body.get('stock'),
             position=message_body.get('position'),
+            session=message_body.get('session')
         )
 
         return product_target_stmt, product_history_stmt
@@ -57,15 +58,10 @@ class ResultConsumer(Consumer):
         else:
             transaction.execute(select_stmt)
         result = transaction.fetchone()
-
-        get_session_stmt = select(Sessions).order_by(desc(Sessions.id)).limit(1)
-        transaction.execute(*compile_expression(get_session_stmt))
-        session = transaction.fetchone()
         
         self.logger.debug(result)
         product_history_stmt = product_history_stmt.values(
-            product_id=result.get('id'), 
-            session=session['id']
+            product_id=result.get('id')
             )
         transaction.execute(*compile_expression(product_history_stmt))
 
