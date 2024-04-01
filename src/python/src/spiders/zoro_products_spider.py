@@ -17,7 +17,12 @@ from items import ProductItem
 class ZoroDetailPageSpider(TaskToSingleResultSpider):
     name = "zoro_products_spider"
     domain = "www.zoro.com"
-    custom_settings = {"ITEM_PIPELINES": {get_import_full_name(ItemProducerPipeline): 310}}
+    custom_settings = {
+        "ITEM_PIPELINES": {
+            'pipelines.SaveImagesPipeline': 200,
+            get_import_full_name(ItemProducerPipeline): 310,
+        }
+    }
     project_settings = get_project_settings()
 
     def __init__(self, *args, **kwargs):
@@ -75,6 +80,7 @@ class ZoroDetailPageSpider(TaskToSingleResultSpider):
         item["brand"] = product_data.get("brand").get("name")
         if len(product_data.get("image")) >= 1:
             item["image_url"] = product_data.get("image")[0].get("contentUrl")
+        item["image_file"] = f'{item["url"].split("/")[2].split(".")[1]}_{item["url"].split("/")[-2]}.jpg'
         attributes = response.xpath("//table//tbody//text()").getall()
         if attributes:
             clean_attributes = [item.strip() for item in attributes if item.strip()]

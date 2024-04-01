@@ -92,7 +92,7 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
 
         item["image_url"] = response.urljoin(response.xpath(
             '//div[contains(@class, "skuImageZoom")]/img/@src').get())
-        item["image_file"] = f'{item["url"].split("/")[2].split(".")[1]}_{item["url"].split("/")[-1].split(".")[0]}.jpg'
+        item["image_file"] = f'{item["url"].split("/")[2].split(".")[1]}_{item["url"].split("/")[-1].split(".")[-2]}.jpg'
 
         product_card = response.xpath('//div[@class="row no-gutters"]')
         current_price = product_card.xpath(

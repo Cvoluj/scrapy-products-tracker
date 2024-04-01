@@ -139,6 +139,7 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
             if detail_info["image"] != "ZKAIyMrw_.JPG":
                 item["image_url"] = f"{self.img_url_base}{detail_info['image']}"
             item["url"] = f"{self.zoro_url}{detail_info['slug']}"
+            item["image_file"] = f'{item["url"].split("/")[2].split(".")[1]}_{item["url"].split("/")[-2]}.jpg'
             item["current_price"] = detail_info["price"]
             item["additional_info"] = detail_info["attributes"]
             item["position"] = start_position + i + 1

@@ -19,6 +19,7 @@ class CostcoDetailPageSpider(TaskToSingleResultSpider):
     project_settings = get_project_settings()
     custom_settings = {
         "ITEM_PIPELINES": {
+            'pipelines.SaveImagesPipeline': 200,
             get_import_full_name(ItemProducerPipeline): 310,
         }
     }
@@ -77,6 +78,7 @@ class CostcoDetailPageSpider(TaskToSingleResultSpider):
             item["description"] = description.strip()
         item["brand"] = response.xpath("//div[@itemprop='brand']/text()").get()
         item["image_url"] = response.xpath("//img[@id='initialProductImage']/@src").get()
+        item["image_file"] = f'{item["url"].split("/")[2].split(".")[1]}_{item["url"].split("/")[-1].split(".")[-2]}.jpg'
         item["position"] = response.meta["position"]
         attributes = response.xpath(
             "//h3[contains(text(), 'Specifications')]/following-sibling::div//text()"
