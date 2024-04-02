@@ -31,7 +31,7 @@ class CostcoCategorySpider(TaskToSingleResultSpider):
         self.completion_strategy = RPCTaskConsumer.CompletionStrategies.REQUESTS_BASED
         self.task_queue_name = (
             f"{self.project_settings.get('RMQ_DOMAIN_QUEUE_MAP').get(self.domain)}"
-            f"_products_task_queue"
+            f"_category_task_queue"
         )
         self.reply_to_queue_name = self.project_settings.get("RMQ_PRODUCT_REPLY_QUEUE")
         self.result_queue_name = self.project_settings.get("RMQ_PRODUCT_RESULT_QUEUE")
@@ -55,7 +55,7 @@ class CostcoCategorySpider(TaskToSingleResultSpider):
             callback=self.parse,
             errback=self._errback,
             headers=self.headers,
-            meta={"total_products": 0},
+            meta={"total_products": 0, 'session': data.get('session')},
             dont_filter=True,
         )
 
@@ -77,6 +77,7 @@ class CostcoCategorySpider(TaskToSingleResultSpider):
         products = response.xpath("//div[@class='thumbnail']")
         for product in products:
             item = ProductItem()
+            item['session'] = response.meta.get('session')
             item["url"] = product.xpath(".//span[@class='description']//a/@href").get()
             total_products = response.meta["total_products"]
             item["position"] = total_products + 1

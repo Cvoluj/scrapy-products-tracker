@@ -17,6 +17,10 @@ class CSVDatabase:
         self.csv_file = csv_file
         self.session_id = None
 
+        self.target = 'category'
+        if hasattr(self.model, 'title'):
+            self.target = 'product'
+
     def insert_from_csv(self):
         d = self.create_session()
         d.addCallback(lambda _: self.get_session())
@@ -38,8 +42,6 @@ class CSVDatabase:
                 'session': self.session_id
             }
             logging.warning(self.session_id)
-            if type(self.model) is ProductTargets:
-                values['external_id'] = row
                 
             stmt: Insert = insert(self.model)
             stmt = stmt.on_duplicate_key_update({
@@ -53,13 +55,13 @@ class CSVDatabase:
 
     def create_session(self):
         try:
-            stmt: Insert = insert(Sessions).values(csv_file=self.csv_file)
+            stmt: Insert = insert(Sessions).values(csv_file=self.csv_file, target=self.target)
             return self.conn.runQuery(*compile_expression(stmt))
         except Exception as e:
             logging.error("Error inserting item: %s", e)
 
     def get_session(self):
-        stmt = select(Sessions).order_by(desc(Sessions.id)).limit(1)
+        stmt = select(Sessions).where(Sessions.target == self.target).order_by(desc(Sessions.id)).limit(1)
         deferred = self.conn.runQuery(*compile_expression(stmt))
         deferred.addCallback(self.handle_session_result)
         return deferred

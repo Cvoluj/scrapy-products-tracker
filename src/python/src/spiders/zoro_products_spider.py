@@ -41,7 +41,7 @@ class ZoroDetailPageSpider(TaskToSingleResultSpider):
         """
 
         data: Dict[str, Any] = json.loads(msg_body)
-        return scrapy.Request(data["url"], callback=self.parse_product, dont_filter=True)
+        return scrapy.Request(data["url"], callback=self.parse_product, meta={'session': data.get('session')}, dont_filter=True)
 
     @rmq_callback
     def parse_product(self, response: Response) -> ProductItem:
@@ -54,6 +54,7 @@ class ZoroDetailPageSpider(TaskToSingleResultSpider):
             ProductItem: The extracted item with product details.
         """
         item = ProductItem()
+        item['session'] = response.meta.get('session')
         product_data = json.loads(
             response.xpath("//script[@data-za='product-microdata']/text()").get()
         )
@@ -68,10 +69,10 @@ class ZoroDetailPageSpider(TaskToSingleResultSpider):
         regular_price = response.xpath("//div[@class='strikethrough-price']/text()").get()
         if regular_price:
             item["regular_price"] = float(regular_price.strip().replace("$", ""))
-        item["in_stock"] = True
-        in_stock = product_data.get("offers").get("availability")
-        if in_stock == "http://schema.org/OutOfStock":
-            item["in_stock"] = False
+        item["is_in_stock"] = True
+        is_in_stock = product_data.get("offers").get("availability")
+        if is_in_stock == "http://schema.org/OutOfStock":
+            item["is_in_stock"] = False
         item["brand"] = product_data.get("brand").get("name")
         if len(product_data.get("image")) >= 1:
             item["image_url"] = product_data.get("image")[0].get("contentUrl")

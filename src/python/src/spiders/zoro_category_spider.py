@@ -48,7 +48,7 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
             formdata=params,
             headers=self.headers,
             callback=self.parse_category_pages,
-            meta={"category_id": category_id},
+            meta={"category_id": category_id, "session": data.get('session')},
             dont_filter=True,
         )
 
@@ -69,6 +69,7 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
                 "start": self.start,
                 "value": value,
                 "category_id": category_id,
+                "session": response.meta.get('session')
             },
             dont_filter=True,
         )
@@ -87,7 +88,11 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
             data=request_data,
             headers=self.headers,
             callback=self.parse_availability,
-            meta={"products": products, "start_position": start_position},
+            meta={
+                "products": products, 
+                "start_position": start_position, 
+                "session": response.meta.get('session')
+            },
             dont_filter=True,
         )
 
@@ -111,12 +116,14 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
                         "start": start,
                         "value": response.meta["value"],
                         "category_id": response.meta["category_id"],
+                        "session": response.meta.get('session')
                     },
                     dont_filter=True,
                 )
 
     @rmq_callback
     def parse_availability(self, response):
+        self.logger.warning(response.meta)
 
         availability_info = response.json().get("payload")
         availability_dict = {
@@ -125,10 +132,11 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
 
         products = response.meta["products"]
         start_position = response.meta["start_position"]
-
+        
         for i, product in enumerate(products):
             detail_info = product["variants"][0]
             item = ProductItem()
+            item['session'] = response.meta.get('session')
             item["is_in_stock"] = True
             if availability_dict.get(product["id"]) == "Out of Stock":
                 item["is_in_stock"] = False

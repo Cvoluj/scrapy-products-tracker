@@ -13,7 +13,6 @@ from rmq.utils.decorators import rmq_callback, rmq_errback
 
 
 class CustominkCategorySpider(TaskToMultipleResultsSpider):
-
     name = "customink_category_spider"
     start_urls = "https://www.customink.com"
     domain = "www.customink.com"
@@ -36,7 +35,7 @@ class CustominkCategorySpider(TaskToMultipleResultsSpider):
         data = json.loads(msg_body)
         return scrapy.Request(url=data["url"],
                               callback=self.api_request,
-                              meta={"url": data["url"], "page": 0, "position": 0},
+                              meta={"url": data["url"], "page": 0, "position": 0, 'session': data.get('session')},
                               errback=self.errback,
                               dont_filter=True)
 
@@ -83,6 +82,7 @@ class CustominkCategorySpider(TaskToMultipleResultsSpider):
 
         for i in resp:
             position = position + 1
+            item['session'] = response.meta.get('session')
             item["position"] = position
             # item["title"] = i.get("name")
             # print(i.get("name"))
@@ -108,7 +108,7 @@ class CustominkCategorySpider(TaskToMultipleResultsSpider):
         if count_hits - position > 0:
             yield scrapy.Request(url=response.meta["url"],
                                  callback=self.api_request,
-                                 meta={"url": response.meta["url"], "page": response.meta["page"]+1, "position": position},
+                                 meta={"url": response.meta["url"], "page": response.meta["page"]+1, "position": position, 'session': response.meta.get('session')},
                                  dont_filter=True)
 
 

@@ -15,8 +15,8 @@ from items import ProductItem
 
 
 class VikingDetailPageSpiderSpider(TaskToSingleResultSpider):
-    name = "viking_detail_page_spider"
-    domain_url = "www.viking-direct.co.uk"
+    name = "viking_products_spider"
+    domain = "www.viking-direct.co.uk"
     project_settings = get_project_settings()
     custom_settings = {
         "ITEM_PIPELINES": {
@@ -51,7 +51,7 @@ class VikingDetailPageSpiderSpider(TaskToSingleResultSpider):
             url=data["url"],
             callback=self.parse,
             errback=self._errback,
-            meta={"position": data["position"]},
+            meta={"position": data["position"], 'session': data.get('session')},
             dont_filter=True,
         )
 
@@ -66,6 +66,7 @@ class VikingDetailPageSpiderSpider(TaskToSingleResultSpider):
             ProductItem: The extracted item with product details.
         """
         item = ProductItem()
+        item['session'] = response.meta.get('session')
         item["url"] = response.url
         item["title"] = response.xpath("//h1[@itemprop='name']/text()").get()
         item["description"] = self.extract_description(response)
@@ -121,7 +122,6 @@ class VikingDetailPageSpiderSpider(TaskToSingleResultSpider):
                 item["current_price"] = float(
                     data_dict.get("skuInfo").get("price")[0]["skuPriceinVAT"]
                 )
-                item["product_id"] = f"viking_{data_dict.get('skuInfo').get('skuID')}"
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON: {e}")
 

@@ -14,7 +14,7 @@ from items import ProductItem
 
 
 class CostcoDetailPageSpider(TaskToSingleResultSpider):
-    name = "costco_detail_page_spider"
+    name = "costco_products_spider"
     domain = "www.costco.com"
     project_settings = get_project_settings()
     custom_settings = {
@@ -30,6 +30,7 @@ class CostcoDetailPageSpider(TaskToSingleResultSpider):
             f"{self.project_settings.get('RMQ_DOMAIN_QUEUE_MAP').get(self.domain)}"
             f"_products_task_queue"
         )
+        self.logger.warning(self.task_queue_name)
         self.reply_to_queue_name = self.project_settings.get("RMQ_PRODUCT_REPLY_QUEUE")
         self.result_queue_name = self.project_settings.get("RMQ_PRODUCT_RESULT_QUEUE")
         self.headers = {"accept": "application/json"}
@@ -52,7 +53,7 @@ class CostcoDetailPageSpider(TaskToSingleResultSpider):
             callback=self.parse,
             errback=self._errback,
             headers=self.headers,
-            meta={"position": data["position"]},
+            meta={"position": data["position"], 'session': data.get('session')},
             dont_filter=True,
         )
 
@@ -67,6 +68,7 @@ class CostcoDetailPageSpider(TaskToSingleResultSpider):
             FormRequest: A Scrapy Request object for the next page.
         """
         item = ProductItem()
+        item['session'] = response.meta.get('session')
         item["url"] = response.url
         title = response.xpath("//h1[@itemprop='name']/text()").get()
         if title is None:
