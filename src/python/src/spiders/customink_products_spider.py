@@ -55,6 +55,7 @@ class CustominkProductsSpider(TaskToMultipleResultsSpider):
         data = json.loads(msg_body)
         return scrapy.Request(url=data["url"],
                               callback=self.parse,
+                              meta={'delivery_tag': _delivery_tag, 'session': data.get('session')},
                               errback=self.errback,
                               meta={'position': data["position"], 'session': data["session"]},
                               dont_filter=True)
@@ -66,15 +67,7 @@ class CustominkProductsSpider(TaskToMultipleResultsSpider):
 
         It extracts product information from the response using JSON data embedded in the HTML content.
 
-        Args:
-            response: The scrapy response object containing the product page HTML content.
-
-        Yields:
-            A populated ProductItem object containing the extracted product information, ready to be sent to the
-            results queue.
-        """
-
-        item = ProductItem()
+        item['session'] = response.meta.get('session')
         item["url"] = response.url
 
         data_json = json.loads(response.xpath('//script[@id="pc-Style-jsonld"]/text()').get())

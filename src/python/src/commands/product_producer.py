@@ -5,12 +5,11 @@ from commands.abstract import DomainProducer
 from database.models import ProductTargets
 
 
-class ProduceUrl(DomainProducer):
+class ProductProducer(DomainProducer):
     """
     Example of calling this command:
-    scrapy from_db_product_producer --chunk_size=500 --mode=worker
-
-    notice, --task_queue became unnecessary, because it alreade defined in CSVProducer. But if you want you still can change it
+    scrapy product_producer --chunk_size=500 --mode=worker
+    notice, --task_queue became unnecessary, because it already defined. But if you want you still can change it
     """
 
     def __init__(self):
