@@ -45,7 +45,9 @@ class ProductResultConsumer(Consumer):
             is_in_stock=message_body.get('is_in_stock'),
             stock=message_body.get('stock'),
             position=message_body.get('position'),
-            session=message_body.get('session')
+            session=message_body.get('session'),
+            currency=message_body.get('currency'),
+            units=message_body.get('units')
         )
 
         return product_target_stmt, id_select_stmt, product_history_stmt
