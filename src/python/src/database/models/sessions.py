@@ -9,6 +9,7 @@ class Sessions(Base, MysqlPrimaryKeyMixin):
     __tablename__ = 'sessions'
 
     csv_file = Column(String(255))
+    target = Column(String(255))
     created_at = Column(
         "created_at", TIMESTAMP, nullable=False, server_default=text("CURRENT_TIMESTAMP"),
     )
