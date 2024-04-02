@@ -59,11 +59,6 @@ class CustominkProductsSpider(TaskToMultipleResultsSpider):
                               meta={'position': data["position"], 'session': data["session"]},
                               dont_filter=True)
 
-    # def start_requests(self):
-    #     urls = ['https://www.customink.com/products/kids/kids-hats/rabbit-skins-baby-rib-hat/1125900']
-    #     for i in urls:
-    #         yield scrapy.Request(url=i, callback=self.parse)
-
     @rmq_callback
     def parse(self, response):
         """
@@ -75,7 +70,8 @@ class CustominkProductsSpider(TaskToMultipleResultsSpider):
             response: The scrapy response object containing the product page HTML content.
 
         Yields:
-            A populated ProductItem object containing the extracted product information, ready to be sent to the results queue.
+            A populated ProductItem object containing the extracted product information, ready to be sent to the
+            results queue.
         """
 
         item = ProductItem()
@@ -112,7 +108,6 @@ class CustominkProductsSpider(TaskToMultipleResultsSpider):
         item["session"] = response.meta["session"]
 
         yield item
-
 
     @rmq_errback
     def errback(self, failure):

@@ -56,19 +56,14 @@ class CustominkCategorySpider(TaskToMultipleResultsSpider):
         data = json.loads(msg_body)
         return scrapy.Request(url=data["url"],
                               callback=self.api_request,
-                              meta={"url": data["url"], "page": 0, "position": 0, "session": data["session"]},
+                              meta={"url": data["url"],
+                                    "page": 0,
+                                    "position": 0,
+                                    "session": data["session"]},
                               errback=self.errback,
                               dont_filter=True)
 
-    # def start_requests(self):
-    #     urls = [
-    #         'https://www.customink.com/products/polos/screen-printed-polos/157',
-    #         'https://www.customink.com/products/kids/kids-hats/116',
-    #     ]
-    #     for i in urls:
-    #         yield scrapy.Request(url=i, callback=self.api_request,
-    #                              meta={"url": i, "page": 0, "position": 0})
-
+    @rmq_callback
     def api_request(self, response):
         """
         Constructs an Algolia API request to retrieve product information for the given category URL and page number.
@@ -87,9 +82,10 @@ class CustominkCategorySpider(TaskToMultipleResultsSpider):
                     "indexName": "prod_styles",
                     "params": f"clickAnalytics=true&facetFilters=%5B%5B%22sort_by%3Anone%22%5D%5D&facets=%5B%22*%22%5D&filters=status%3A%20active%20OR%20status%3A%20inactive%20AND%20categories.id%3A%20{response.meta['url'].split('/')[-1]}&highlightPostTag=__%2Fais-highlight__&highlightPreTag=__ais-highlight__&hitsPerPage=42&maxValuesPerFacet=100&page={response.meta['page']}&query=&tagFilters=&userToken=anonymous-a2866a73-bd83-424f-a295-6bb37a0ef0fb"
                 },
+                # These parameters are also passed in the browser, but the spider also works without them
                 # {
                 #     "indexName": "prod_styles",
-                #     "params": "analytics=false&clickAnalytics=false&facets=sort_by&filters=status%3A%20active%20OR%20status%3A%20inactive%20AND%20categories.id%3A%20157&highlightPostTag=__%2Fais-highlight__&highlightPreTag=__ais-highlight__&hitsPerPage=0&maxValuesPerFacet=100&page=0&query=&userToken=anonymous-a2866a73-bd83-424f-a295-6bb37a0ef0fb"
+                #     "params": f"analytics=false&clickAnalytics=false&facets=sort_by&filters=status%3A%20active%20OR%20status%3A%20inactive%20AND%20categories.id%3A%20{response.meta['url'].split('/')[-1]}&highlightPostTag=__%2Fais-highlight__&highlightPreTag=__ais-highlight__&hitsPerPage=0&maxValuesPerFacet=100&page={response.meta['page']}&query=&userToken=anonymous-a2866a73-bd83-424f-a295-6bb37a0ef0fb"
                 # }
             ]
         }
@@ -107,10 +103,13 @@ class CustominkCategorySpider(TaskToMultipleResultsSpider):
         """
         Parses the response from the Algolia API and extracts product information.
 
-        This method extracts product URLs and other relevant data from the JSON response received from the Algolia API.
-        It iterates through each product hit and populates a `ProductItem` instance with the extracted data, including the product URL and its position within the current result set.
+        This method extracts product URLs and other relevant data from the JSON response received from the Algolia
+        API. It iterates through each product hit and populates a `ProductItem` instance with the extracted data,
+        including the product URL and its position within the current result set.
 
-        The method also checks for additional pages of results. If more products are available on subsequent pages (based on the total hit count (`nbHits`) and the current position (`position`)), it generates a new Scrapy Request to fetch the next page using the `api_request` method.
+        The method also checks for additional pages of results. If more products are available on subsequent pages
+        (based on the total hit count (`nbHits`) and the current position (`position`)), it generates a new Scrapy
+        Request to fetch the next page using the `api_request` method.
 
         Args:
             response (scrapy.Response): The Scrapy response object containing the JSON data from the Algolia API.
@@ -137,7 +136,10 @@ class CustominkCategorySpider(TaskToMultipleResultsSpider):
         if count_hits - position > 0:
             yield scrapy.Request(url=response.meta["url"],
                                  callback=self.api_request,
-                                 meta={"url": response.meta["url"], "page": response.meta["page"]+1, "position": position, 'session': response.meta['session']},
+                                 meta={"url": response.meta["url"],
+                                       "page": response.meta["page"]+1,
+                                       "position": position,
+                                       "session": response.meta["session"]},
                                  dont_filter=True)
 
     @rmq_errback

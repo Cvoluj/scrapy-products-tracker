@@ -57,11 +57,6 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
                               meta={'position': data["position"], 'session': data["session"]},
                               dont_filter=True)
 
-    # def start_requests(self):
-    #     urls = ['https://www.quill.com/nescafe-espresso-whole-bean-coffee-medium-roast-3527-oz-6-carton-12338492/cbs/55421487.html']
-    #     for i in urls:
-    #         yield scrapy.Request(url=i, callback=self.parse)
-
     @rmq_callback
     def parse(self, response):
         """

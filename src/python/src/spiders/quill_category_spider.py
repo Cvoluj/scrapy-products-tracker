@@ -56,11 +56,6 @@ class QuillCategorySpider(TaskToMultipleResultsSpider):
                               errback=self.errback,
                               dont_filter=True)
 
-    # def start_requests(self):
-    #     urls = ['https://www.quill.com/whole-bean-coffee/cbk/53110.html']
-    #     for i in urls:
-    #         yield scrapy.Request(url=i, callback=self.parse, meta={'position': 0}, errback=self.errback)
-
     @rmq_callback
     def parse(self, response):
         """
