@@ -34,7 +34,8 @@ class ProductResultConsumer(Consumer):
             brand=message_body.get('brand'),
             image_url=message_body.get('image_url'),
             image_file=message_body.get('image_file'),
-            additional_info=json.dumps(message_body.get('additional_info'))
+            additional_info=json.dumps(message_body.get('additional_info')),
+            session=message_body.get('session')
         )
         id_select_stmt = select(ProductTargets.id).where(ProductTargets.url == message_body.get('url'))
         product_history_stmt = insert(ProductHistory).values(
@@ -43,7 +44,8 @@ class ProductResultConsumer(Consumer):
             current_price=message_body.get('current_price'),
             is_in_stock=message_body.get('is_in_stock'),
             stock=message_body.get('stock'),
-            position=message_body.get('position')
+            position=message_body.get('position'),
+            session=message_body.get('session')
         )
 
         return product_target_stmt, id_select_stmt, product_history_stmt

@@ -77,7 +77,7 @@ class VikingCategorySpider(TaskToSingleResultSpider):
         for product in products:
             item['session'] = response.meta.get('session')
             item["url"] = (
-                self.domain
+                self.domain_url
                 + product.xpath(".//a[@class='product-lister-item__name']/@href").get()
             )
             total_products = response.meta["total_products"]

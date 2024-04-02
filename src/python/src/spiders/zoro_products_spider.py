@@ -60,6 +60,7 @@ class ZoroDetailPageSpider(TaskToSingleResultSpider):
             ProductItem: The extracted item with product details.
         """
         item = ProductItem()
+        item['session'] = response.meta.get('session')
         product_data = self.extract_product_data(response)
         self.fill_basic_info(item, product_data, response)
         self.fill_pricing_info(item, response)

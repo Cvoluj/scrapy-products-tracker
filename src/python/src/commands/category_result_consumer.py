@@ -19,13 +19,13 @@ class CategoryResultConsumer(Consumer):
         url = message_body.get('url')
         product_targets_stmt = insert(ProductTargets).values(
             url=url,
-            domain=furl(url).netloc
-            # position=message_body.get('position'),
-            # session=message_body.get('session'),
+            domain=furl(url).netloc,
+            position=message_body.get('position'),
+            session=message_body.get('session'),
         ).on_duplicate_key_update(
-            status=TaskStatusCodes.NOT_PROCESSED.value
-            # position=message_body.get('position'),
-            # session=message_body.get('session'),
+            status=TaskStatusCodes.NOT_PROCESSED.value,
+            position=message_body.get('position'),
+            session=message_body.get('session'),
         )
 
         return product_targets_stmt
