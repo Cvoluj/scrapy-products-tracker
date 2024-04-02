@@ -87,6 +87,7 @@ class ZoroDetailPageSpider(TaskToSingleResultSpider):
         item["url"] = response.url
         item["title"] = product_data.get("name")
         item["description"] = product_data.get("description")
+        item["image_file"] = f'{item["url"].split("/")[2].split(".")[1]}_{item["url"].split("/")[-2]}.jpg'
 
     def fill_pricing_info(self, item, response):
         """Extract and fill pricing information."""

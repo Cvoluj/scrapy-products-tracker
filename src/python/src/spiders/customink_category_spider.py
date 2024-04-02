@@ -126,7 +126,6 @@ class CustominkCategorySpider(TaskToMultipleResultsSpider):
 
         for i in resp:
             position = position + 1
-            item['session'] = response.meta.get('session')
             item["position"] = position
             item["url"] = self.start_urls + i.get("breadcrumbs")[-1].get("path")
             item["session"] = response.meta['session']

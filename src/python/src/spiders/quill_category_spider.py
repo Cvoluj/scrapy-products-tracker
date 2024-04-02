@@ -71,7 +71,6 @@ class QuillCategorySpider(TaskToMultipleResultsSpider):
 
         item = ProductItem()
         position = response.meta['position']
-        session = response.meta.get('session')
         product_list = response.xpath(
             '//div[contains(@class, "gridView") and contains(@class, "search-product-card-wrap")]')
 

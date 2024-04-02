@@ -63,15 +63,20 @@ class CustominkProductsSpider(TaskToMultipleResultsSpider):
     def parse(self, response):
         """
         Parse the product details from the CustomInk.com product page response and yield a populated ProductItem.
+
         It extracts product information from the response using JSON data embedded in the HTML content.
+
         Args:
             response: The scrapy response object containing the product page HTML content.
+
         Yields:
             A populated ProductItem object containing the extracted product information, ready to be sent to the
             results queue.
         """
+
         item = ProductItem()
         item["url"] = response.url
+
         data_json = json.loads(response.xpath('//script[@id="pc-Style-jsonld"]/text()').get())
         item["title"] = data_json.get("name")
         item["description"] = data_json.get("description")
@@ -81,13 +86,16 @@ class CustominkProductsSpider(TaskToMultipleResultsSpider):
         item["current_price"] = data_json.get("offers", {}).get("price")
         item["units"] = f'Per {data_json.get("offers", {}).get("eligibleQuantity", {}).get("value")} items'
         item["regular_price"] = item["current_price"]
+
         currency_dict = {"USD": "$"}
         item["currency"] = currency_dict.get(data_json.get("offers", {}).get("priceCurrency"))
+
         item["additional_info"] = json.dumps({
             "category": data_json.get("category", {}).get("name", "No"),
             "rating_value": data_json.get("aggregateRating", {}).get("ratingValue", "No"),
             "rating_count": data_json.get("aggregateRating", {}).get("ratingCount", "No"),
         })
+
         stock = data_json.get("offers", {}).get("availability")
         if stock == "http://schema.org/InStock":
             item["stock"] = 1
@@ -95,8 +103,10 @@ class CustominkProductsSpider(TaskToMultipleResultsSpider):
         else:
             item["stock"] = 0
             item["is_in_stock"] = False
+
         item["position"] = response.meta["position"]
         item["session"] = response.meta["session"]
+
         yield item
 
     @rmq_errback

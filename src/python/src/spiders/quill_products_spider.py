@@ -73,7 +73,6 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
             ProductItem: A populated ProductItem object containing the extracted product information.
         """
         item = ProductItem()
-        item['session'] = response.meta.get('session')
         item["url"] = response.url
         item["title"] = response.xpath(
             '//div[@id="SkuMainContentDiv"]/h1[contains(@class, "m-sku-title")]/text()').get()
