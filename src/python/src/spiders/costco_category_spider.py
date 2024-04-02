@@ -81,6 +81,7 @@ class CostcoCategorySpider(TaskToSingleResultSpider):
             item["url"] = product.xpath(".//span[@class='description']//a/@href").get()
             total_products = response.meta["total_products"]
             item["position"] = total_products + 1
+            item["session"] = response.meta.get("session")
             yield item
             response.meta["total_products"] = total_products + 1
 

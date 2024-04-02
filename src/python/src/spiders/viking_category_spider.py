@@ -18,6 +18,7 @@ from items import ProductItem
 class VikingCategorySpider(TaskToSingleResultSpider):
     name = "viking_category_spider"
     domain = "www.viking-direct.co.uk"
+    domain_url = "https://www.viking-direct.co.uk/"
     project_settings = get_project_settings()
 
     custom_settings = {
@@ -81,6 +82,7 @@ class VikingCategorySpider(TaskToSingleResultSpider):
             )
             total_products = response.meta["total_products"]
             item["position"] = total_products + 1
+            item["session"] = response.meta.get("session")
             yield item
             response.meta["total_products"] = total_products + 1
         if products:

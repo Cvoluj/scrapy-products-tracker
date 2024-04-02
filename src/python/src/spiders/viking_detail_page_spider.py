@@ -80,6 +80,7 @@ class VikingDetailPageSpiderSpider(TaskToSingleResultSpider):
         item["is_in_stock"] = self.check_stock_status(response)
         self.extract_pricing_and_id(item, response)
         item["position"] = response.meta.get("position")
+        item["session"] = response.meta.get("session")
         yield item
 
     @staticmethod

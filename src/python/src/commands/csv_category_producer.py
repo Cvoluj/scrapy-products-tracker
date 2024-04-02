@@ -5,12 +5,11 @@ from commands import CSVProducer
 from database.models import CategoryTargets
 
 
-class ProduceCategory(CSVProducer):
+class CSVCategoryProducer(CSVProducer):
     """
     Example of calling this command:
-    scrapy from_csv_category_producer --file=csv_file.csv --reply_to_queue=category_reply_queue --chunk_size=500 --mode=worker
-
-    notice, --task_queue became unnecessary, because it alreade defined in CSVProducer. But if you want you still can change it
+    scrapy csv_category_producer --file=csv_file.csv  --chunk_size=500 --mode=worker
+    notice, --task_queue became unnecessary, because it already defined. But if you want you still can change it
     """
     model = CategoryTargets
     _DEFAULT_DELAY_TIMEOUT = 3
@@ -18,6 +17,7 @@ class ProduceCategory(CSVProducer):
     def __init__(self):
         super().__init__()
         self.domain_queue_map = {domain: f'{queue}_category_task_queue' for domain, queue in self.domain_queue_map.items()}
+        self.reply_to_queue_name = self.project_settings.get("RMQ_CATEGORY_REPLY_QUEUE")
 
     def build_task_query_stmt(self, chunk_size):
         """This method must returns sqlalchemy Executable or string that represents valid raw SQL select query
