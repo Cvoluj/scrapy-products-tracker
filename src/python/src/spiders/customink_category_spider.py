@@ -56,7 +56,7 @@ class CustominkCategorySpider(TaskToMultipleResultsSpider):
         data = json.loads(msg_body)
         return scrapy.Request(url=data["url"],
                               callback=self.api_request,
-                              meta={"url": data["url"], "page": 0, "position": 0},
+                              meta={"url": data["url"], "page": 0, "position": 0, "session": data["session"]},
                               errback=self.errback,
                               dont_filter=True)
 
@@ -129,6 +129,7 @@ class CustominkCategorySpider(TaskToMultipleResultsSpider):
             position = position + 1
             item["position"] = position
             item["url"] = self.start_urls + i.get("breadcrumbs")[-1].get("path")
+            item["session"] = response.meta['session']
 
             yield item
 
@@ -136,9 +137,8 @@ class CustominkCategorySpider(TaskToMultipleResultsSpider):
         if count_hits - position > 0:
             yield scrapy.Request(url=response.meta["url"],
                                  callback=self.api_request,
-                                 meta={"url": response.meta["url"], "page": response.meta["page"]+1, "position": position},
+                                 meta={"url": response.meta["url"], "page": response.meta["page"]+1, "position": position, 'session': response.meta['session']},
                                  dont_filter=True)
-
 
     @rmq_errback
     def errback(self, failure):

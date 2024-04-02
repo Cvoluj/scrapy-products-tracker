@@ -15,7 +15,12 @@ from items import ProductItem
 class ZoroCategorySpider(TaskToSingleResultSpider):
     name = "zoro_category_spider"
     domain = "www.zoro.com"
-    custom_settings = {"ITEM_PIPELINES": {get_import_full_name(ItemProducerPipeline): 310}}
+    custom_settings = {
+        "ITEM_PIPELINES": {
+            'pipelines.SaveImagesPipeline': 200,
+            get_import_full_name(ItemProducerPipeline): 310,
+        }
+    }
     project_settings = get_project_settings()
 
     def __init__(self, *args, **kwargs):

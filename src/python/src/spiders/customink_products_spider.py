@@ -56,6 +56,7 @@ class CustominkProductsSpider(TaskToMultipleResultsSpider):
         return scrapy.Request(url=data["url"],
                               callback=self.parse,
                               errback=self.errback,
+                              meta={'position': data["position"], 'session': data["session"]},
                               dont_filter=True)
 
     # def start_requests(self):
@@ -106,6 +107,9 @@ class CustominkProductsSpider(TaskToMultipleResultsSpider):
         else:
             item["stock"] = 0
             item["is_in_stock"] = False
+
+        item["position"] = response.meta["position"]
+        item["session"] = response.meta["session"]
 
         yield item
 

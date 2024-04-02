@@ -54,6 +54,7 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
         return scrapy.Request(url=data["url"],
                               callback=self.parse,
                               errback=self.errback,
+                              meta={'position': data["position"], 'session': data["session"]},
                               dont_filter=True)
 
     # def start_requests(self):
@@ -136,6 +137,9 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
         else:
             item["stock"] = 1
             item["is_in_stock"] = True
+
+        item["position"] = response.meta["position"]
+        item["session"] = response.meta["session"]
 
         yield item
 

@@ -52,7 +52,7 @@ class QuillCategorySpider(TaskToMultipleResultsSpider):
         data = json.loads(msg_body)
         return scrapy.Request(url=data["url"],
                               callback=self.parse,
-                              meta={'position': 0},
+                              meta={'position': 0, "session": data["session"]},
                               errback=self.errback,
                               dont_filter=True)
 
@@ -86,13 +86,16 @@ class QuillCategorySpider(TaskToMultipleResultsSpider):
             product_link = product.xpath(
                 './/span[contains(@class, "search-product-name-wrap")]/a[contains(@class, "blue-hover-link")]/@href').get()
             item["url"] = response.urljoin(product_link)
+            item["session"] = response.meta['session']
 
             yield item
 
         next_page = response.xpath(
             '//div[contains(@class, "text-primary")]/a[contains(@class, "next")]/@href').get()
         if next_page is not None:
-            yield response.follow(next_page, self.parse, meta={'position': position})
+            yield response.follow(url=next_page,
+                                  callback=self.parse,
+                                  meta={'position': position, 'session': response.meta['session']})
 
     @rmq_errback
     def errback(self, failure):
