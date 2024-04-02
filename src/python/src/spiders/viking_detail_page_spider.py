@@ -20,6 +20,7 @@ class VikingDetailPageSpiderSpider(TaskToSingleResultSpider):
     project_settings = get_project_settings()
     custom_settings = {
         "ITEM_PIPELINES": {
+            'pipelines.SaveImagesPipeline': 200,
             get_import_full_name(ItemProducerPipeline): 310,
         }
     }
@@ -72,6 +73,7 @@ class VikingDetailPageSpiderSpider(TaskToSingleResultSpider):
         item["description"] = self.extract_description(response)
         item["brand"] = response.xpath("//a[@itemprop='brand']//text()").get()
         item["image_url"] = self.extract_image_url(response)
+        item["image_file"] = f'{item["url"].split("/")[2].split(".")[1]}_{item["url"].split("/")[-1].split("-")[-1]}.jpg'
         item["additional_info"] = self.extract_additional_info(response)
         item["units"] = response.xpath(
             "//div[@class='product-price-panel__price-per']/div//text()"

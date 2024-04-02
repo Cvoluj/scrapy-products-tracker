@@ -16,8 +16,12 @@ BOT_NAME = "YOUR_PROJECT_NAME"
 SPIDER_MODULES = ["spiders"]
 NEWSPIDER_MODULE = "spiders"
 COMMANDS_MODULE = "commands"
+IMAGES_STORE = 'images'
 
 ZORO_SPIDER_API_KEY = os.getenv("ZORO_SPIDER_API_KEY", "")
+CUSTOMINK_SPIDER_API_KEY = os.getenv("CUSTOMINK_SPIDER_API_KEY", "")
+CUSTOMINK_SPIDER_APPLICATION_ID = os.getenv("CUSTOMINK_SPIDER_APPLICATION_ID", "")
+
 
 PROXY = os.getenv("PROXY", "")
 PROXY_AUTH = os.getenv("PROXY_AUTH", "")
@@ -45,6 +49,7 @@ ROTATING_PROXIES_DOWNLOADER_HANDLER_AUTO_CLOSE_CACHED_CONNECTIONS_ENABLED: bool 
 DOWNLOADER_MIDDLEWARES = {
     "scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware": None,
     "middlewares.HttpProxyMiddleware": 543,
+    "middlewares.RetryMiddleware": 544,
 }
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")

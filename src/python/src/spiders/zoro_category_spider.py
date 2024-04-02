@@ -15,7 +15,12 @@ from items import ProductItem
 class ZoroCategorySpider(TaskToSingleResultSpider):
     name = "zoro_category_spider"
     domain = "www.zoro.com"
-    custom_settings = {"ITEM_PIPELINES": {get_import_full_name(ItemProducerPipeline): 310}}
+    custom_settings = {
+        "ITEM_PIPELINES": {
+            'pipelines.SaveImagesPipeline': 200,
+            get_import_full_name(ItemProducerPipeline): 310,
+        }
+    }
     project_settings = get_project_settings()
 
     def __init__(self, *args, **kwargs):
@@ -186,6 +191,7 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
             if detail_info["image"] != "ZKAIyMrw_.JPG":
                 item["image_url"] = f"{self.img_url_base}{detail_info['image']}"
             item["url"] = f"{self.zoro_url}{detail_info['slug']}"
+            item["image_file"] = f'{item["url"].split("/")[2].split(".")[1]}_{item["url"].split("/")[-2]}.jpg'
             item["current_price"] = detail_info["price"]
             item["additional_info"] = detail_info["attributes"]
             item["position"] = start_position + i + 1
