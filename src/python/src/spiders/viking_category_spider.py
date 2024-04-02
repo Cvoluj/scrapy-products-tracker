@@ -34,8 +34,8 @@ class VikingCategorySpider(TaskToSingleResultSpider):
             f"{self.project_settings.get('RMQ_DOMAIN_QUEUE_MAP').get(self.domain)}"
             f"_category_task_queue"
         )
-        self.reply_to_queue_name = self.project_settings.get("RMQ_PRODUCT_REPLY_QUEUE")
-        self.result_queue_name = self.project_settings.get("RMQ_PRODUCT_RESULT_QUEUE")
+        self.reply_to_queue_name = self.project_settings.get("RMQ_CATEGORY_REPLY_QUEUE")
+        self.result_queue_name = self.project_settings.get("RMQ_CATEGORY_RESULT_QUEUE")
 
     def next_request(self, _delivery_tag: str, msg_body: str) -> Request:
         """
