@@ -56,6 +56,7 @@ class QuillCategorySpider(TaskToMultipleResultsSpider):
                               errback=self.errback,
                               dont_filter=True)
 
+
     @rmq_callback
     def parse(self, response):
         """
@@ -88,11 +89,10 @@ class QuillCategorySpider(TaskToMultipleResultsSpider):
         next_page = response.xpath(
             '//div[contains(@class, "text-primary")]/a[contains(@class, "next")]/@href').get()
         if next_page is not None:
-            yield response.follow(url=next_page,
-                                  callback=self.parse,
-                                  meta={'position': position, 'session': response.meta['session']},
-                                  dont_filter=True
-                                  )
+            yield scrapy.Request(url=response.urljoin(next_page),
+                                 callback=self.parse,
+                                 meta={'position': position, 'session': response.meta['session']},
+                                 dont_filter=True)
 
     @rmq_errback
     def errback(self, failure):

@@ -95,7 +95,8 @@ class CustominkCategorySpider(TaskToMultipleResultsSpider):
                              method='POST',
                              headers=self.headers,
                              errback=self.errback,
-                             meta=response.meta
+                             meta=response.meta,
+                             dont_filter=True
                              )
 
     @rmq_callback
