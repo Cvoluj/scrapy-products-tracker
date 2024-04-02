@@ -52,7 +52,7 @@ class CostcoDetailPageSpider(TaskToSingleResultSpider):
             callback=self.parse,
             errback=self._errback,
             headers=self.headers,
-            meta={"position": data["position"]},
+            meta={"position": data["position"], "session": data.get("session")},
             dont_filter=True,
         )
 
@@ -102,7 +102,7 @@ class CostcoDetailPageSpider(TaskToSingleResultSpider):
                 "invCheckPostalCode": "97123",
             },
             headers=self.headers,
-            meta={"item": item, "product_id": product_id},
+            meta={"item": item, "product_id": product_id, "session": response.meta.get("session")},
             dont_filter=True,
         )
 
@@ -131,7 +131,7 @@ class CostcoDetailPageSpider(TaskToSingleResultSpider):
             callback=self.parse_price,
             errback=self._errback,
             headers=self.headers,
-            meta={"item": item},
+            meta={"item": item, "session": response.meta.get("session")},
             dont_filter=True,
         )
 
@@ -146,6 +146,7 @@ class CostcoDetailPageSpider(TaskToSingleResultSpider):
             ProductItem: The extracted item with product details.
         """
         item = response.meta["item"]
+        item["session"] = response.meta.get("session")
         try:
             data = response.json()
             if data:
@@ -154,7 +155,7 @@ class CostcoDetailPageSpider(TaskToSingleResultSpider):
                 item["regular_price"] = regular_price
                 item["current_price"] = regular_price - discount
         except json.JSONDecodeError:
-            self.logger.info(f"Can't parse stock data: no valid JSON response")
+            self.logger.info(f"Can't parse price data: no valid JSON response")
 
         yield item
 

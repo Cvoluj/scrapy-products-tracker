@@ -17,6 +17,7 @@ from items import ProductItem
 
 class VikingCategorySpider(TaskToSingleResultSpider):
     name = "viking_category_spider"
+    domain = "www.viking-direct.co.uk"
     domain_url = "https://www.viking-direct.co.uk/"
     project_settings = get_project_settings()
 
@@ -31,7 +32,7 @@ class VikingCategorySpider(TaskToSingleResultSpider):
         self.completion_strategy = RPCTaskConsumer.CompletionStrategies.REQUESTS_BASED
         self.task_queue_name = (
             f"{self.project_settings.get('RMQ_DOMAIN_QUEUE_MAP').get(self.domain)}"
-            f"_products_task_queue"
+            f"_category_task_queue"
         )
         self.reply_to_queue_name = self.project_settings.get("RMQ_PRODUCT_REPLY_QUEUE")
         self.result_queue_name = self.project_settings.get("RMQ_PRODUCT_RESULT_QUEUE")
@@ -53,7 +54,7 @@ class VikingCategorySpider(TaskToSingleResultSpider):
             url=data["url"],
             callback=self.parse,
             errback=self._errback,
-            meta={"total_products": 0},
+            meta={"total_products": 0, "session": data.get("session")},
             dont_filter=True,
         )
 
@@ -78,9 +79,9 @@ class VikingCategorySpider(TaskToSingleResultSpider):
                 self.domain_url
                 + product.xpath(".//a[@class='product-lister-item__name']/@href").get()
             )
-            item["product_id"] = f"viking_{product.xpath('//div/@data-legacy-sku').get()}"
             total_products = response.meta["total_products"]
             item["position"] = total_products + 1
+            item["session"] = response.meta.get("session")
             yield item
             response.meta["total_products"] = total_products + 1
         if products:
