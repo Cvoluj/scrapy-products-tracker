@@ -15,7 +15,7 @@ from items import ProductItem
 
 
 class VikingDetailPageSpiderSpider(TaskToSingleResultSpider):
-    name = "viking_detail_page_spider"
+    name = "viking_products_spider"
     domain = "www.viking-direct.co.uk"
     project_settings = get_project_settings()
     custom_settings = {
@@ -51,7 +51,7 @@ class VikingDetailPageSpiderSpider(TaskToSingleResultSpider):
             url=data["url"],
             callback=self.parse,
             errback=self._errback,
-            meta={"position": data["position"], "session": data.get("session")},
+            meta={"position": data["position"], 'session': data.get('session')},
             dont_filter=True,
         )
 
@@ -66,6 +66,7 @@ class VikingDetailPageSpiderSpider(TaskToSingleResultSpider):
             ProductItem: The extracted item with product details.
         """
         item = ProductItem()
+        item['session'] = response.meta.get('session')
         item["url"] = response.url
         item["title"] = response.xpath("//h1[@itemprop='name']/text()").get()
         item["description"] = self.extract_description(response)

@@ -12,6 +12,7 @@ class CSVCategoryProducer(CSVProducer):
     notice, --task_queue became unnecessary, because it already defined. But if you want you still can change it
     """
     model = CategoryTargets
+    _DEFAULT_DELAY_TIMEOUT = 3
 
     def __init__(self):
         super().__init__()

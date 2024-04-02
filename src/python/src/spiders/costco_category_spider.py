@@ -55,7 +55,7 @@ class CostcoCategorySpider(TaskToSingleResultSpider):
             callback=self.parse,
             errback=self._errback,
             headers=self.headers,
-            meta={"total_products": 0, "session": data.get("session")},
+            meta={"total_products": 0, 'session': data.get('session')},
             dont_filter=True,
         )
 
@@ -77,6 +77,7 @@ class CostcoCategorySpider(TaskToSingleResultSpider):
         products = response.xpath("//div[@class='thumbnail']")
         for product in products:
             item = ProductItem()
+            item['session'] = response.meta.get('session')
             item["url"] = product.xpath(".//span[@class='description']//a/@href").get()
             total_products = response.meta["total_products"]
             item["position"] = total_products + 1

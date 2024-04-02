@@ -32,7 +32,7 @@ class CustominkProductsSpider(TaskToMultipleResultsSpider):
         data = json.loads(msg_body)
         return scrapy.Request(url=data["url"],
                               callback=self.parse,
-                              meta={'delivery_tag': _delivery_tag},
+                              meta={'delivery_tag': _delivery_tag, 'session': data.get('session')},
                               errback=self.errback,
                               dont_filter=True)
 
@@ -47,6 +47,7 @@ class CustominkProductsSpider(TaskToMultipleResultsSpider):
 
         item = ProductItem()
 
+        item['session'] = response.meta.get('session')
         item["url"] = response.url
 
         data_json = json.loads(response.xpath('//script[@id="pc-Style-jsonld"]/text()').get())

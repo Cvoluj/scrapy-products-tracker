@@ -19,3 +19,4 @@ class ProductItem(RMQItem):
     position = scrapy.Field()
     currency = scrapy.Field()
     units = scrapy.Field()
+    session = scrapy.Field()

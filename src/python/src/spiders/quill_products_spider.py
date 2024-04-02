@@ -31,11 +31,13 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
         return scrapy.Request(data["url"],
                               callback=self.parse,
                               errback=self.errback,
+                              meta={'session': data.get('session')},
                               dont_filter=True)
 
     @rmq_callback
     def parse(self, response):
         item = ProductItem()
+        item['session'] = response.meta.get('session')
         item["url"] = response.url
         item["title"] = response.xpath(
             '//div[@id="SkuMainContentDiv"]/h1[contains(@class, "m-sku-title")]/text()').get()
