@@ -14,8 +14,8 @@ from database.connection import get_db
 
 class StartTracking(BaseCommand):
     """
-    StartTracking class sets model.status=0 and updates model.session. Depending on model: ProductTargets or CategoryTargets
-    sets Session.target to 'product' or 'category'
+    StartTracking class sets model.status=0 and updates model.session field.
+    Depending on model: ProductTargets or CategoryTargets sets Session.target to 'product' or 'category'
 
     Example of command line:
     >>> scrapy start_tracking --model=ProductTargets
