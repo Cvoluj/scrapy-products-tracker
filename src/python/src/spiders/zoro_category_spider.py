@@ -17,7 +17,7 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
     domain = "www.zoro.com"
     custom_settings = {
         "ITEM_PIPELINES": {
-            'pipelines.SaveImagesPipeline': 200,
+            "pipelines.SaveImagesPipeline": 200,
             get_import_full_name(ItemProducerPipeline): 310,
         }
     }
@@ -68,7 +68,11 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
             headers=self.headers,
             callback=self.parse_category_pages,
             errback=self._errback,
-            meta={"category_id": category_id, "session": data.get("session")},
+            meta={
+                "category_id": category_id,
+                "session": data.get("session"),
+                "delivery_tag": _delivery_tag,
+            },
             dont_filter=True,
         )
 
@@ -97,7 +101,8 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
                 "start": self.start,
                 "value": value,
                 "category_id": category_id,
-                "session": response.meta.get('session')
+                "session": response.meta.get("session"),
+                "delivery_tag": response.meta.get("delivery_tag"),
             },
             dont_filter=True,
         )
@@ -125,9 +130,10 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
             headers=self.headers,
             callback=self.parse_availability,
             meta={
-                "products": products, 
-                "start_position": start_position, 
-                "session": response.meta.get('session')
+                "products": products,
+                "start_position": start_position,
+                "session": response.meta.get("session"),
+                "delivery_tag": response.meta.get("delivery_tag"),
             },
             dont_filter=True,
         )
@@ -153,7 +159,8 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
                         "start": start,
                         "value": response.meta["value"],
                         "category_id": response.meta["category_id"],
-                        "session": response.meta.get('session')
+                        "session": response.meta.get("session"),
+                        "delivery_tag": response.meta.get("delivery_tag"),
                     },
                     dont_filter=True,
                 )
@@ -176,11 +183,11 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
 
         products = response.meta["products"]
         start_position = response.meta["start_position"]
-        
+
         for i, product in enumerate(products):
             detail_info = product["variants"][0]
             item = ProductItem()
-            item['session'] = response.meta.get('session')
+            item["session"] = response.meta.get("session")
             item["is_in_stock"] = True
             if availability_dict.get(product["id"]) == "Out of Stock":
                 item["is_in_stock"] = False
@@ -191,7 +198,9 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
             if detail_info["image"] != "ZKAIyMrw_.JPG":
                 item["image_url"] = f"{self.img_url_base}{detail_info['image']}"
             item["url"] = f"{self.zoro_url}{detail_info['slug']}"
-            item["image_file"] = f'{item["url"].split("/")[2].split(".")[1]}_{item["url"].split("/")[-2]}.jpg'
+            item["image_file"] = (
+                f'{item["url"].split("/")[2].split(".")[1]}_{item["url"].split("/")[-2]}.jpg'
+            )
             item["current_price"] = detail_info["price"]
             item["additional_info"] = detail_info["attributes"]
             item["position"] = start_position + i + 1

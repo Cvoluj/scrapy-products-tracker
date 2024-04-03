@@ -18,7 +18,7 @@ class ZoroDetailPageSpider(TaskToSingleResultSpider):
     domain = "www.zoro.com"
     custom_settings = {
         "ITEM_PIPELINES": {
-            'pipelines.SaveImagesPipeline': 200,
+            "pipelines.SaveImagesPipeline": 200,
             get_import_full_name(ItemProducerPipeline): 310,
         }
     }
@@ -50,7 +50,11 @@ class ZoroDetailPageSpider(TaskToSingleResultSpider):
             data["url"],
             callback=self.parse_product,
             errback=self._errback,
-            meta={"position": data.get("position"), "session": data.get("session")},
+            meta={
+                "position": data.get("position"),
+                "session": data.get("session"),
+                "delivery_tag": _delivery_tag,
+            },
             dont_filter=True,
         )
 
@@ -65,7 +69,7 @@ class ZoroDetailPageSpider(TaskToSingleResultSpider):
             ProductItem: The extracted item with product details.
         """
         item = ProductItem()
-        item['session'] = response.meta.get('session')
+        item["session"] = response.meta.get("session")
         product_data = self.extract_product_data(response)
         self.fill_basic_info(item, product_data, response)
         self.fill_pricing_info(item, response)
@@ -87,7 +91,9 @@ class ZoroDetailPageSpider(TaskToSingleResultSpider):
         item["url"] = response.url
         item["title"] = product_data.get("name")
         item["description"] = product_data.get("description")
-        item["image_file"] = f'{item["url"].split("/")[2].split(".")[1]}_{item["url"].split("/")[-2]}.jpg'
+        item["image_file"] = (
+            f'{item["url"].split("/")[2].split(".")[1]}_{item["url"].split("/")[-2]}.jpg'
+        )
 
     def fill_pricing_info(self, item, response):
         """Extract and fill pricing information."""
