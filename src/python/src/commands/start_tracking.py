@@ -1,7 +1,8 @@
 from argparse import Namespace
 from scrapy.commands import ScrapyCommand
+from scrapy.utils.project import get_project_settings
 from twisted.internet import reactor, task
-from sqlalchemy import update, select, desc, and_
+from sqlalchemy import update, select, desc
 from sqlalchemy.dialects.mysql import Insert, insert
 from rmq.utils.sql_expressions import compile_expression
 from rmq.utils import TaskStatusCodes
@@ -13,13 +14,16 @@ from database.connection import get_db
 
 class StartTracking(BaseCommand):
     """
-    scrapy start_tracking --model=ProductTargets --minutes=1 --hours=1 --days=1
+    StartTracking class sets model.status=0 and updates model.session. Depending on model: ProductTargets or CategoryTargets
+    sets Session.target to 'product' or 'category'
+
+    Example of command line:
+    >>> scrapy start_tracking --model=ProductTargets
     """
-    
+    MINUTE = 60
+
     def init(self):
-        self.days = None
-        self.hours = None
-        self.minutes = None
+        self.interval = self.settings.getint(("SESSION_INTERVAL")) * self.MINUTE
         self.model = None
         self.session_file = None
         self.current_session_id = None
@@ -29,28 +33,7 @@ class StartTracking(BaseCommand):
     def add_options(self, parser):
         ScrapyCommand.add_options(self, parser)
         parser.add_argument(
-            "-d",
-            "--days",
-            type=int,
-            dest="days",
-            help="number of days",
-        )
-        parser.add_argument(
-            "-h",
-            "--hours",
-            type=int,
-            dest="hours",
-            help="number of hours",
-        )
-        parser.add_argument(
             "-m",
-            "--minutes",
-            type=int,
-            dest="minutes",
-            help="number of minutes",
-        )
-        parser.add_argument(
-            "-t",
             "--model",
             type=str,
             dest="model",
@@ -75,26 +58,6 @@ class StartTracking(BaseCommand):
 
         return model_class
     
-    def init_days(self, opts: Namespace):
-        days = getattr(opts, "days", None)
-        if days is None:
-            days = self.days
-        self.days = days
-        return days
-    
-    def init_hours(self, opts: Namespace):
-        hours = getattr(opts, "hours", None)
-        if hours is None:
-            hours = self.hours
-        self.hours = hours
-        return hours
-    
-    def init_minutes(self, opts: Namespace):
-        minutes = getattr(opts, "minutes", None)
-        if minutes is None:
-            minutes = self.minutes
-        self.minutes = minutes
-        return minutes
     def get_previous_session(self):
         stmt = select(Sessions).where(Sessions.target == self.target).order_by(desc(Sessions.id)).limit(1)
         deferred = self.conn.runQuery(*compile_expression(stmt))
@@ -114,16 +77,11 @@ class StartTracking(BaseCommand):
         self.session_file = self.session_file = result[0].get('csv_file') if result else None
         self.previous_session_id = result[0].get('id') if result else None
 
-    def execute(self, args, opts: Namespace):
-        self.init_days(opts)
-        self.init_hours(opts)
-        self.init_minutes(opts)  
+    def execute(self, args, opts: Namespace):  
         self.init_model_name(opts)      
-
-        delay = ((self.days or 0) * 86400) + ((self.hours or 0) * 3600) + ((self.minutes or 0) * 10)
         
         repeat_session_task = task.LoopingCall(self.repeat_session)
-        reactor.callLater(delay, repeat_session_task.start, delay)
+        reactor.callLater(self.interval, repeat_session_task.start, self.interval)
                     
     def update_session(self):
         try:
@@ -155,3 +113,4 @@ class StartTracking(BaseCommand):
     def run(self, args: list[str], opts: Namespace):
         reactor.callLater(0, self.execute, args, opts)
         reactor.run()
+
