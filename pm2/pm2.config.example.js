@@ -12,45 +12,164 @@ const {
 
 const spiders = [
   {
-    name: `${PROJECT_PREFIX}_spider`,
+    name: `${PROJECT_PREFIX}_zoro_category_spider`,
     script: SCRAPY_SCRIPT,
-    args: "crawl spider_name",
+    args: "crawl zoro_category_spider",
     interpreter: PYTHON_INTERPRETER,
     instances: 1,
     autorestart: true,
-    cron_restart: "0 * * * *",
   },
   {
-    name: `${PROJECT_PREFIX}_puppeteer_spider`,
-    script: NODEJS_SCRIPT,
-    cwd: TYPESCRIPT_CWD,
-    args: `build/index.js crawl example --url="https://api.myip.com/"`,
+    name: `${PROJECT_PREFIX}_zoro_products_spider`,
+    script: SCRAPY_SCRIPT,
+    args: "crawl zoro_products_spider",
+    interpreter: PYTHON_INTERPRETER,
     instances: 1,
     autorestart: true,
-    cron_restart: "0 * * * *",
-  }
+  },
+  {
+    name: `${PROJECT_PREFIX}_quill_category_spider`,
+    script: SCRAPY_SCRIPT,
+    args: "crawl quill_category_spider",
+    interpreter: PYTHON_INTERPRETER,
+    instances: 1,
+    autorestart: true,
+  },
+  {
+    name: `${PROJECT_PREFIX}_quill_products_spider`,
+    script: SCRAPY_SCRIPT,
+    args: "crawl quill_products_spider",
+    interpreter: PYTHON_INTERPRETER,
+    instances: 1,
+    autorestart: true,
+  },
+  {
+    name: `${PROJECT_PREFIX}_customink_category_spider`,
+    script: SCRAPY_SCRIPT,
+    args: "crawl customink_category_spider",
+    interpreter: PYTHON_INTERPRETER,
+    instances: 1,
+    autorestart: true,
+  },
+  {
+    name: `${PROJECT_PREFIX}_customink_products_spider`,
+    script: SCRAPY_SCRIPT,
+    args: "crawl customink_products_spider",
+    interpreter: PYTHON_INTERPRETER,
+    instances: 1,
+    autorestart: true,
+  },
+  {
+    name: `${PROJECT_PREFIX}_costco_category_spider`,
+    script: SCRAPY_SCRIPT,
+    args: "crawl costco_category_spider",
+    interpreter: PYTHON_INTERPRETER,
+    instances: 1,
+    autorestart: true,
+  },
+  {
+    name: `${PROJECT_PREFIX}_costco_products_spider`,
+    script: SCRAPY_SCRIPT,
+    args: "crawl costco_products_spider",
+    interpreter: PYTHON_INTERPRETER,
+    instances: 1,
+    autorestart: true,
+  },
+  {
+    name: `${PROJECT_PREFIX}_viking_category_spider`,
+    script: SCRAPY_SCRIPT,
+    args: "crawl viking_category_spider",
+    interpreter: PYTHON_INTERPRETER,
+    instances: 1,
+    autorestart: true,
+  },
+  {
+    name: `${PROJECT_PREFIX}_viking_products_spider`,
+    script: SCRAPY_SCRIPT,
+    args: "crawl viking_products_spider",
+    interpreter: PYTHON_INTERPRETER,
+    instances: 1,
+    autorestart: true,
+  },
 ];
 
-const producers = [];
+const producers = [
+  {
+    name: `${PROJECT_PREFIX}_csv_category_producer`,
+    script: SCRAPY_SCRIPT,
+    args: "csv_category_producer --chunk_size=500 --mode=worker",
+    interpreter: PYTHON_INTERPRETER,
+    instances: 1,
+    autorestart: true,
+  },
+  {
+    name: `${PROJECT_PREFIX}_csv_product_producer`,
+    script: SCRAPY_SCRIPT,
+    args: "csv_product_producer --chunk_size=500 --mode=worker",
+    interpreter: PYTHON_INTERPRETER,
+    instances: 1,
+    autorestart: true,
+  },
+];
 
-const consumers = [];
+const consumers = [
+  {
+    name: `${PROJECT_PREFIX}_category_result_consumer`,
+    script: SCRAPY_SCRIPT,
+    args: "category_result_consumer --mode=worker",
+    interpreter: PYTHON_INTERPRETER,
+    instances: 1,
+    autorestart: true,
+  },
+  {
+    name: `${PROJECT_PREFIX}_category_reply_consumer`,
+    script: SCRAPY_SCRIPT,
+    args: "category_reply_consumer --mode=worker",
+    interpreter: PYTHON_INTERPRETER,
+    instances: 1,
+    autorestart: true,
+  },
+  {
+    name: `${PROJECT_PREFIX}_product_result_consumer`,
+    script: SCRAPY_SCRIPT,
+    args: "product_result_consumer --mode=worker",
+    interpreter: PYTHON_INTERPRETER,
+    instances: 1,
+    autorestart: true,
+  },
+  {
+    name: `${PROJECT_PREFIX}_product_reply_consumer`,
+    script: SCRAPY_SCRIPT,
+    args: "product_reply_consumer --mode=worker",
+    interpreter: PYTHON_INTERPRETER,
+    instances: 1,
+    autorestart: true,
+  },
+];
 
 const commands = [
   {
-    name: `${PROJECT_PREFIX}_command_name`,
+    name: `${PROJECT_PREFIX}_start_category_tracking`,
     script: SCRAPY_SCRIPT,
-    args: "scrapy_command_name --args1=123 --args2=text",
+    args: "start_tracking --model=CategoryTargets",
     interpreter: PYTHON_INTERPRETER,
     instances: 1,
     autorestart: true,
-    cron_restart: "0 * * * *",
+  },
+  {
+    name: `${PROJECT_PREFIX}_start_products_tracking`,
+    script: SCRAPY_SCRIPT,
+    args: "start_tracking --model=ProductTargets",
+    interpreter: PYTHON_INTERPRETER,
+    instances: 1,
+    autorestart: true,
   },
 ];
 
 const processNames = [];
 const apps = [];
 
-Array.from([producers, consumers, commands, spiders]).map(t => {
+Array.from([producers, spiders, consumers, commands]).map(t => {
   t.reduce((a, v) => {
     if (!v.hasOwnProperty('name') || v.name.length === 0) {
       console.error('ERROR: process name field is required');
