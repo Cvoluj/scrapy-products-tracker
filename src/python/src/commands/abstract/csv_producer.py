@@ -8,7 +8,9 @@ from utils import CSVDatabase
 
 class CSVProducer(DomainProducer):
     """
-    Inheriting this class require declaring sqlalchemy model and mapping for domain: queue
+    Adjust parent class for working with CSV files, by using CSVDatabase class
+
+    Inheriting this class require declaring sqlalchemy model and `domain_queue_map`
     """    
     model: Table = None
 
@@ -17,6 +19,9 @@ class CSVProducer(DomainProducer):
         self.csv_file = None
 
     def add_options(self, parser):
+        """
+        add option to give csv file name as parameter
+        """
         super().add_options(parser)
         parser.add_argument(
             "-f",
@@ -27,6 +32,9 @@ class CSVProducer(DomainProducer):
         )
 
     def init_csv_file_name(self, opts: Namespace):
+        """
+        initializing of `self.csv_file` variable that contains csv file name
+        """
         csv_file = getattr(opts, "csv_file", None)
         if csv_file is None:
             raise NotImplementedError(
@@ -36,6 +44,10 @@ class CSVProducer(DomainProducer):
         return csv_file
     
     def execute(self, _args: list[str], opts: Namespace):
+        """
+        initializing instance of `CSVDatabase` class, calling `CSVDatabase.insert_from_csv`
+        then calling `super().execute`
+        """
         self.init_csv_file_name(opts)
         if self.model is None:
             raise ValueError(
