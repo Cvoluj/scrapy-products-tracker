@@ -31,7 +31,6 @@ class CostcoDetailPageSpider(TaskToSingleResultSpider):
             f"{self.project_settings.get('RMQ_DOMAIN_QUEUE_MAP').get(self.domain)}"
             f"_products_task_queue"
         )
-        self.logger.warning(self.task_queue_name)
         self.reply_to_queue_name = self.project_settings.get("RMQ_PRODUCT_REPLY_QUEUE")
         self.result_queue_name = self.project_settings.get("RMQ_PRODUCT_RESULT_QUEUE")
         self.headers = {"accept": "application/json"}
@@ -54,7 +53,11 @@ class CostcoDetailPageSpider(TaskToSingleResultSpider):
             callback=self.parse,
             errback=self._errback,
             headers=self.headers,
-            meta={"position": data["position"], 'session': data.get('session')},
+            meta={
+                "position": data["position"],
+                "session": data.get("session"),
+                "delivery_tag": _delivery_tag,
+            },
             dont_filter=True,
         )
 
@@ -69,7 +72,7 @@ class CostcoDetailPageSpider(TaskToSingleResultSpider):
             FormRequest: A Scrapy Request object for the next page.
         """
         item = ProductItem()
-        item['session'] = response.meta.get('session')
+        item["session"] = response.meta.get("session")
         item["url"] = response.url
         title = response.xpath("//h1[@itemprop='name']/text()").get()
         if title is None:
@@ -106,7 +109,12 @@ class CostcoDetailPageSpider(TaskToSingleResultSpider):
                 "invCheckPostalCode": "97123",
             },
             headers=self.headers,
-            meta={"item": item, "product_id": product_id, "session": response.meta.get("session")},
+            meta={
+                "item": item,
+                "product_id": product_id,
+                "session": response.meta.get("session"),
+                "delivery_tag": response.meta.get("delivery_tag"),
+            },
             dont_filter=True,
         )
 
@@ -135,7 +143,11 @@ class CostcoDetailPageSpider(TaskToSingleResultSpider):
             callback=self.parse_price,
             errback=self._errback,
             headers=self.headers,
-            meta={"item": item, "session": response.meta.get("session")},
+            meta={
+                "item": item,
+                "session": response.meta.get("session"),
+                "delivery_tag": response.meta.get("delivery_tag"),
+            },
             dont_filter=True,
         )
 
@@ -151,6 +163,7 @@ class CostcoDetailPageSpider(TaskToSingleResultSpider):
         """
         item = response.meta["item"]
         item["session"] = response.meta.get("session")
+        item["currency"] = "USD"
         try:
             data = response.json()
             if data:
