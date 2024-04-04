@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "YOUR_PROJECT_NAME"
+name = "s1_products_tracker"
 version = "2.3.0"
 description = ""
 authors = ["Kristobal Junta <junta.kristobal@gmail.com>"]
