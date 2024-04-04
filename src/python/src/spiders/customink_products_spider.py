@@ -56,7 +56,9 @@ class CustominkProductsSpider(TaskToMultipleResultsSpider):
         return scrapy.Request(url=data["url"],
                               callback=self.parse,
                               errback=self.errback,
-                              meta={'position': data["position"], 'session': data["session"]},
+                              meta={'position': data["position"],
+                                    'session': data["session"],
+                                    "delivery_tag": _delivery_tag},
                               dont_filter=True)
 
     @rmq_callback

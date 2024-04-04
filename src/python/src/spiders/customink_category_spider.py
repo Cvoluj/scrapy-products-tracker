@@ -59,7 +59,9 @@ class CustominkCategorySpider(TaskToMultipleResultsSpider):
                               meta={"url": data["url"],
                                     "page": 0,
                                     "position": 0,
-                                    "session": data["session"]},
+                                    "session": data["session"],
+                                    "category": data.get("url"),
+                                    "delivery_tag": _delivery_tag},
                               errback=self.errback,
                               dont_filter=True)
 
@@ -130,7 +132,7 @@ class CustominkCategorySpider(TaskToMultipleResultsSpider):
             item["position"] = position
             item["url"] = self.start_urls + i.get("breadcrumbs")[-1].get("path")
             item["session"] = response.meta['session']
-
+            item["category"] = response.meta.get("category")
             yield item
 
         count_hits = json.loads(response.body).get("results")[0].get("nbHits")
@@ -140,7 +142,9 @@ class CustominkCategorySpider(TaskToMultipleResultsSpider):
                                  meta={"url": response.meta["url"],
                                        "page": response.meta["page"]+1,
                                        "position": position,
-                                       "session": response.meta["session"]},
+                                       "session": response.meta["session"],
+                                       "category": response.meta["category"],
+                                       "delivery_tag": response.meta["delivery_tag"]},
                                  dont_filter=True)
 
     @rmq_errback

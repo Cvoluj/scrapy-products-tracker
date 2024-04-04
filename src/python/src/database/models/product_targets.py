@@ -19,3 +19,4 @@ class ProductTargets(Base, MysqlPrimaryKeyMixin, MysqlStatusMixin, MysqlExceptio
     is_tracked = Column('is_tracked', BOOLEAN, nullable=False, server_default=text("True"))
     position = Column('position', INTEGER(unsigned=True))
     session = Column('session', BIGINT(unsigned=True), ForeignKey('sessions.id'))
+    category = Column('category', String(768))
