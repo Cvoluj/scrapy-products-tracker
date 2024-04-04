@@ -14,11 +14,11 @@ from database.connection import get_db
 
 class StartTracking(BaseCommand):
     """
-    StartTracking class sets model.status=0 and updates model.session. Depending on model: ProductTargets or CategoryTargets
-    sets Session.target to 'product' or 'category'
+    StartTracking class sets model.status=0 and updates model.session field.
+    Depending on model: ProductTargets or CategoryTargets sets Session.target to 'product' or 'category'
 
     Example of command line:
-    >>> scrapy start_tracking --model=ProductTargets
+    scrapy start_tracking --model=ProductTargets
     """
     MINUTE = 60
 
@@ -57,19 +57,19 @@ class StartTracking(BaseCommand):
             self.target = 'category'
 
         return model_class
-    
+
     def get_previous_session(self):
         stmt = select(Sessions).where(Sessions.target == self.target).order_by(desc(Sessions.id)).limit(1)
         deferred = self.conn.runQuery(*compile_expression(stmt))
         deferred.addCallback(self.handle_previous_session_result)
         return deferred
-    
+
     def get_current_session(self):
         stmt = select(Sessions).where(Sessions.target == self.target).order_by(desc(Sessions.id)).limit(1)
         deferred = self.conn.runQuery(*compile_expression(stmt))
         deferred.addCallback(self.handle_current_session_result)
         return deferred
-    
+
     def handle_current_session_result(self, result):
         self.current_session_id = result[0].get('id') if result else None
 
@@ -77,12 +77,12 @@ class StartTracking(BaseCommand):
         self.session_file = self.session_file = result[0].get('csv_file') if result else None
         self.previous_session_id = result[0].get('id') if result else None
 
-    def execute(self, args, opts: Namespace):  
-        self.init_model_name(opts)      
-        
+    def execute(self, args, opts: Namespace):
+        self.init_model_name(opts)
+
         repeat_session_task = task.LoopingCall(self.repeat_session)
         reactor.callLater(self.interval, repeat_session_task.start, self.interval)
-                    
+
     def update_session(self):
         try:
             stmt: Insert = insert(Sessions).values(csv_file=self.session_file, target=self.target)
@@ -90,7 +90,7 @@ class StartTracking(BaseCommand):
             return self.conn.runQuery(*compile_expression(stmt))
         except Exception as e:
             self.logger.error("Error inserting item: %s", e)
-    
+
     def update_status(self):
         try:
             self.logger.warning(self.current_session_id)
@@ -102,7 +102,7 @@ class StartTracking(BaseCommand):
             self.conn.runQuery(*compile_expression(stmt))
         except Exception as e:
             self.loggerr.error("Error updating item: %s", e)
-    
+
     def repeat_session(self):
         d = self.get_previous_session()
         d.addCallback(lambda _: self.update_session())

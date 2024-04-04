@@ -22,6 +22,7 @@ class CategoryResultConsumer(Consumer):
             domain=furl(url).netloc,
             position=message_body.get('position'),
             session=message_body.get('session'),
+            category=message_body.get('category')
         ).on_duplicate_key_update(
             status=TaskStatusCodes.NOT_PROCESSED.value,
             position=message_body.get('position'),

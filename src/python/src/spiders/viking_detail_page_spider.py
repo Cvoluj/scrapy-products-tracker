@@ -74,40 +74,38 @@ class VikingDetailPageSpiderSpider(TaskToSingleResultSpider):
         item["session"] = response.meta.get("session")
         item["url"] = response.url
         item["title"] = response.xpath("//h1[@itemprop='name']/text()").get()
-        item["description"] = self.extract_description(response)
+        item["description"] = self.get_description(response)
         item["brand"] = response.xpath("//a[@itemprop='brand']//text()").get()
-        item["image_url"] = self.extract_image_url(response)
-        item["image_file"] = (
-            f'{item["url"].split("/")[2].split(".")[1]}_{item["url"].split("/")[-1].split("-")[-1]}.jpg'
-        )
-        item["additional_info"] = self.extract_additional_info(response)
+        item["image_url"] = self.get_image_url(response)
+        item["additional_info"] = self.get_additional_info(response)
         item["units"] = response.xpath(
             "//div[@class='product-price-panel__price-per']/div//text()"
         ).get()
         item["currency"] = response.xpath("//div/@data-currency-iso-code").get()
-        item["is_in_stock"] = self.check_stock_status(response)
-        self.extract_pricing_and_id(item, response)
+        item["is_in_stock"] = self.get_stock_status(response)
+        self.get_pricing_and_image_file_name(item, response)
         item["position"] = response.meta.get("position")
         item["session"] = response.meta.get("session")
         yield item
 
     @staticmethod
-    def extract_description(response: Response) -> str:
+    def get_description(response: Response) -> str:
         description_parts = response.xpath("//div[@itemprop='description']//text()").getall()
         return " ".join([str(part) for part in description_parts]).strip()
 
     @staticmethod
-    def extract_image_url(response: Response) -> str:
-        image_url = response.xpath("//img[@itemprop='image']/@src").get().split("?")[0]
-        return f"https:{image_url}"
+    def get_image_url(response: Response) -> str:
+        get_image_url = response.xpath("//img[@itemprop='image']/@src").get()
+        if get_image_url:
+            return f"https:{get_image_url.split('?')[0]}"
 
     @staticmethod
-    def check_stock_status(response: Response) -> bool:
+    def get_stock_status(response: Response) -> bool:
         out_of_stock = response.xpath("//div[@data-stock-status='outOfStock']").get()
         return not out_of_stock
 
     @staticmethod
-    def extract_additional_info(response: Response) -> dict:
+    def get_additional_info(response: Response) -> dict:
         get_additional_info = response.xpath("//div[@id='contentproductSpecifications']//tr")
         additional_info_dict = {}
         for additional_info in get_additional_info:
@@ -120,8 +118,7 @@ class VikingDetailPageSpiderSpider(TaskToSingleResultSpider):
         return additional_info_dict
 
     @staticmethod
-    def extract_pricing_and_id(item, response: Response) -> None:
-        data_dict = {}
+    def get_pricing_and_image_file_name(item, response: Response) -> None:
         data_string = response.xpath("//script[@type='text/javascript']/text()").get()
         match = re.search(r"\{.*?\}(?=\;)", data_string, re.DOTALL)
         if match:
@@ -131,6 +128,8 @@ class VikingDetailPageSpiderSpider(TaskToSingleResultSpider):
                 item["current_price"] = float(
                     data_dict.get("skuInfo").get("price")[0]["skuPriceinVAT"]
                 )
+                item["image_file"] = f"viking_{data_dict.get('skuInfo').get('skuID')}.jpg"
+
             except json.JSONDecodeError as e:
                 print(f"Error decoding JSON: {e}")
 

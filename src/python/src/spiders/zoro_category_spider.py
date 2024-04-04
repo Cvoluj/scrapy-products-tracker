@@ -72,6 +72,7 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
                 "category_id": category_id,
                 "session": data.get("session"),
                 "delivery_tag": _delivery_tag,
+                "category": category_url,
             },
             dont_filter=True,
         )
@@ -103,6 +104,7 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
                 "category_id": category_id,
                 "session": response.meta.get("session"),
                 "delivery_tag": response.meta.get("delivery_tag"),
+                "category": response.meta.get("category"),
             },
             dont_filter=True,
         )
@@ -134,6 +136,7 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
                 "start_position": start_position,
                 "session": response.meta.get("session"),
                 "delivery_tag": response.meta.get("delivery_tag"),
+                "category": response.meta.get("category")
             },
             dont_filter=True,
         )
@@ -161,6 +164,7 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
                         "category_id": response.meta["category_id"],
                         "session": response.meta.get("session"),
                         "delivery_tag": response.meta.get("delivery_tag"),
+                        "category": response.meta.get("category")
                     },
                     dont_filter=True,
                 )
@@ -207,6 +211,7 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
             item["currency"] = "USD"
             item["units"] = detail_info["priceUnit"]
             item["session"] = response.meta["session"]
+            item["category"] = response.meta["category"]
             yield item
 
     def generate_json_data(self, start: int, category_id: str, value: str) -> dict:
