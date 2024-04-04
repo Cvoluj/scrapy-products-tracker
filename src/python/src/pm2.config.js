@@ -77,11 +77,11 @@ const consumers = [
 const commands = [
   {
     name: `${PROJECT_PREFIX}_start_category_tracking`,
-    interpreter_args: "start_tracking --model=CategoryTargets'",
+    interpreter_args: "-c 'poetry run scrapy start_tracking --model=CategoryTargets'",
   },
   {
     name: `${PROJECT_PREFIX}_start_products_tracking`,
-    interpreter_args: "start_tracking --model=ProductTargets'",
+    interpreter_args: "-c 'poetry run scrapy start_tracking --model=ProductTargets'",
   },
 ];
 
