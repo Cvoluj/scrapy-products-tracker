@@ -7,7 +7,7 @@ const MAX_MEMORY_RESTART = '1024M';
 const _projectDirectory = path.join(process.cwd(), '..');
 const PM2_LOG_DIRECTORY = path.join(_projectDirectory, 'logs');
 
-const [pythonEnabled, typescriptEnabled] = [true, true];
+const [pythonEnabled, typescriptEnabled] = [true, false];
 const PYTHON_CWD = path.join(_projectDirectory, 'src', 'python', 'src');
 const TYPESCRIPT_CWD = path.join(_projectDirectory, 'src', 'typescript', 'src');
 if (pythonEnabled && !fs.lstatSync(PYTHON_CWD).isDirectory()) {
@@ -23,11 +23,24 @@ let PYTHON_INTERPRETER = null;
 let SCRAPY_SCRIPT = null;
 let NODEJS_SCRIPT = 'node';
 if (process.platform === 'win32') {
+//  Default:
   PYTHON_INTERPRETER = path.join(PYTHON_CWD, '.venv', 'Scripts', 'python.exe');
   SCRAPY_SCRIPT = path.join(PYTHON_CWD, '.venv', 'Scripts', 'scrapy.exe');
+
+//  If the poetry virtualenv is not in the working directory:
+//  To find out where it is, enter it in the terminal: 'poetry env info', and change the lines below
+//PYTHON_INTERPRETER = 'C:\\Users\\User\\AppData\\Local\\pypoetry\\Cache\\virtualenvs\\products-tracker-LUQI7Gaj-py3.11\\Scripts\\python.exe';
+//SCRAPY_SCRIPT = 'C:\\Users\\User\\AppData\\Local\\pypoetry\\Cache\\virtualenvs\\products-tracker-LUQI7Gaj-py3.11\\Scripts\\scrapy.exe';
+
 } else {
+//  Default:
   PYTHON_INTERPRETER = path.join(PYTHON_CWD, '.venv', 'bin', 'python');
   SCRAPY_SCRIPT = path.join(PYTHON_CWD, '.venv', 'bin', 'scrapy');
+
+//  If the poetry virtualenv is not in the working directory:
+//  To find out where it is, enter it in the terminal: 'poetry env info', and change the lines below
+//PYTHON_INTERPRETER = 'C:\\Users\\User\\AppData\\Local\\pypoetry\\Cache\\virtualenvs\\products-tracker-LUQI7Gaj-py3.11\\bin\\python';
+//SCRAPY_SCRIPT = 'C:\\Users\\User\\AppData\\Local\\pypoetry\\Cache\\virtualenvs\\products-tracker-LUQI7Gaj-py3.11\\bin\\scrapy';
 }
 
 if (!fs.existsSync(PYTHON_INTERPRETER)) {

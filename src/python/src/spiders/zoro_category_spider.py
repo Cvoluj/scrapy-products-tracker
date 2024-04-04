@@ -17,7 +17,7 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
     domain = "www.zoro.com"
     custom_settings = {
         "ITEM_PIPELINES": {
-            "pipelines.SaveImagesPipeline": 200,
+            # "pipelines.SaveImagesPipeline": 200,
             get_import_full_name(ItemProducerPipeline): 310,
         }
     }
