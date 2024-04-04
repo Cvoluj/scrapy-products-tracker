@@ -17,7 +17,7 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
     domain = "www.zoro.com"
     custom_settings = {
         "ITEM_PIPELINES": {
-            "pipelines.SaveImagesPipeline": 200,
+            # "pipelines.SaveImagesPipeline": 200,
             get_import_full_name(ItemProducerPipeline): 310,
         }
     }
@@ -31,7 +31,7 @@ class ZoroCategorySpider(TaskToSingleResultSpider):
         )
 
         self.reply_to_queue_name = self.project_settings.get("RMQ_CATEGORY_REPLY_QUEUE")
-        self.result_queue_name = self.project_settings.get("RMQ_PRODUCT_RESULT_QUEUE")
+        self.result_queue_name = self.project_settings.get("RMQ_CATEGORY_RESULT_QUEUE")
         self.completion_strategy = RPCTaskConsumer.CompletionStrategies.REQUESTS_BASED
         self.headers = {
             "apikey": self.project_settings.get("ZORO_SPIDER_API_KEY"),
