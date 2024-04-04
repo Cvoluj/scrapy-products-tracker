@@ -14,41 +14,23 @@ class CSVProducer(DomainProducer):
     """    
     model: Table = None
 
-    def __init__(self):
+    def __init__(self): 
+        """
+        You must init your `self.csv_file` here, 
+        f. e. `from self.project_settings` 
+        """
         super().__init__()
-        self.csv_file = None
-
-    def add_options(self, parser):
-        """
-        add option to give csv file name as parameter
-        """
-        super().add_options(parser)
-        parser.add_argument(
-            "-f",
-            "--file",
-            type=str,
-            dest="csv_file",
-            help="path to csv file",
-        )
-
-    def init_csv_file_name(self, opts: Namespace):
-        """
-        initializing of `self.csv_file` variable that contains csv file name
-        """
-        csv_file = getattr(opts, "csv_file", None)
-        if csv_file is None:
-            raise NotImplementedError(
-                "csv file name must be provided with options or override this method to return it"
-            )
-        self.csv_file = csv_file
-        return csv_file
+        
     
     def execute(self, _args: list[str], opts: Namespace):
         """
         initializing instance of `CSVDatabase` class, calling `CSVDatabase.insert_from_csv`
         then calling `super().execute`
         """
-        self.init_csv_file_name(opts)
+        if self.csv_file is None:
+            raise NotImplementedError(
+                "csv file name must be provided with options or override this method to return it"
+            )
         if self.model is None:
             raise ValueError(
                 "SQLAlchemy table model field must be provided in class"
