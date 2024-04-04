@@ -57,6 +57,7 @@ class VikingCategorySpider(TaskToSingleResultSpider):
             meta={
                 "total_products": 0,
                 "session": data.get("session"),
+                "category": data.get("url"),
                 "delivery_tag": _delivery_tag,
             },
             dont_filter=True,
@@ -87,6 +88,7 @@ class VikingCategorySpider(TaskToSingleResultSpider):
             total_products = response.meta["total_products"]
             item["position"] = total_products + 1
             item["session"] = response.meta.get("session")
+            item["category"] = response.meta.get("category")
             yield item
             response.meta["total_products"] = total_products + 1
         if products:
