@@ -47,9 +47,9 @@ cd "$release_dir/src/python/src"
 pm2 start pm2.config.js
 pm2 save
 # typescript (comment if redundant)
-cd "$release_dir/src/typescript/src"
-pm2 start pm2.config.js
-pm2 save
+#cd "$release_dir/src/typescript/src"
+#pm2 start pm2.config.js
+#pm2 save
 
 # cleanup (remove old releases)
 cd "$1/releases"
