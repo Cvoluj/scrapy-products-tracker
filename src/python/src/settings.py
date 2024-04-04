@@ -24,6 +24,9 @@ CUSTOMINK_SPIDER_APPLICATION_ID = os.getenv("CUSTOMINK_SPIDER_APPLICATION_ID", "
 
 SESSION_INTERVAL = os.getenv("SESSION_INTERVAL", "120")
 
+CATEGORY_FILE=os.getenv("CATEGORY_FILE", 'csv_file.csv')
+PRODUCTS_FILE=os.getenv("PRODUCTS_FILE", 'csv_file2.csv')
+
 PROXY = os.getenv("PROXY", "")
 PROXY_AUTH = os.getenv("PROXY_AUTH", "")
 PROXY_ENABLED = strtobool(os.getenv("PROXY_ENABLED", "False"))

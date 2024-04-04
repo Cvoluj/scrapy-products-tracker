@@ -50,6 +50,9 @@ class CSVExporter(BaseCommand):
         return transaction.fetchall()
     
     def get_headers(self, row: Dict) -> None:
+        """
+        Get headers for csv file
+        """
         if not self.headers:
             self.headers = list(row.keys())
 
@@ -62,6 +65,11 @@ class CSVExporter(BaseCommand):
         return rows
 
     def process_export(self, rows):
+        """
+        if we got rows - create file
+        if no rows and file created - export finished
+        if no rows and file don't created - nothing found
+        """
         if not rows:
             if self.file_exists:
                 self.logger.warning(f'Export finished successfully to {path.basename(self.file_path)}.')
@@ -74,6 +82,10 @@ class CSVExporter(BaseCommand):
             self.save(rows)
     
     def save(self, rows: List[Dict]) -> None:
+        """
+        use context manager to create csv file, add results from interaction and 
+        write header for file
+        """
         with open(self.file_path, 'a', encoding='utf-8', newline='') as file:
             writer = csv.DictWriter(file, fieldnames=self.headers)
             if not self.file_exists:
@@ -81,14 +93,21 @@ class CSVExporter(BaseCommand):
                 self.file_exists = True
             self.logger.warning(f'Exporting to {self.file_path}...')
             writer.writerows(rows)
-        self.logger.warning('Exporting finished')
+        self.process_export(None)
 
     def execute(self, args, opts: Namespace):    
+        """
+        prepare `self.file_path`, call `get_interaction`, 
+        on results call callback for processing export 
+        """
         self.file_path = self.get_file_path()
         d = self.conn.runInteraction(self.get_interaction)
         d.addCallback(self.process_export)
 
     def get_file_path(self, timestamp_format=None, prefix=None, postfix=None, extension=None):
+        """
+        creating file name + export path
+        """
         if timestamp_format is None:
             timestamp_format = self.file_timestamp_format
         if prefix is None:

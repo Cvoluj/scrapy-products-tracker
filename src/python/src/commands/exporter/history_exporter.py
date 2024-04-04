@@ -8,7 +8,7 @@ from commands.abstract import CSVExporter
 from database.models import *
 
 class SessionExporter(CSVExporter):
-    filename_prefix = 'history'
+    filename_prefix = 'history_'
     def init(self):
         super().init()
         self.url = None

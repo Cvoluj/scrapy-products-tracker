@@ -8,13 +8,15 @@ from database.models import ProductTargets
 class CSVProductProducer(CSVProducer):
     """
     Example of calling this command:
-    scrapy csv_product_producer --file=csv_file.csv  --chunk_size=500 --mode=worker
+    scrapy csv_product_producer --chunk_size=500 --mode=worker
     notice, --task_queue became unnecessary, because it already defined. But if you want you still can change it
     """
     model = ProductTargets
 
     def __init__(self):
         super().__init__()
+        self.csv_file = self.project_settings.get("PRODUCTS_FILE")
+        self.logger.warning(self.csv_file)
         self.domain_queue_map = {domain: f'{queue}_products_task_queue' for domain, queue in self.domain_queue_map.items()}
         self.reply_to_queue_name = self.project_settings.get("RMQ_PRODUCT_REPLY_QUEUE")
 
