@@ -133,10 +133,10 @@ class ZoroDetailPageSpider(TaskToSingleResultSpider):
         attributes = response.xpath("//table//tbody//text()").getall()
         if attributes:
             clean_attributes = [attr.strip() for attr in attributes if attr.strip()]
-            item["additional_info"] = {
+            item["additional_info"] = json.dumps({
                 clean_attributes[i]: clean_attributes[i + 1]
                 for i in range(0, len(clean_attributes), 2)
-            }
+            })
 
     @rmq_errback
     def _errback(self, failure):

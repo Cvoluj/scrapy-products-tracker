@@ -54,7 +54,8 @@ class QuillCategorySpider(TaskToMultipleResultsSpider):
                               callback=self.parse,
                               meta={'position': 0,
                                     "session": data["session"],
-                                    "category": data["url"]},
+                                    "category": data["url"],
+                                    "delivery_tag": _delivery_tag},
                               errback=self.errback,
                               dont_filter=True)
 
@@ -95,7 +96,8 @@ class QuillCategorySpider(TaskToMultipleResultsSpider):
                                  callback=self.parse,
                                  meta={'position': position,
                                        'session': response.meta['session'],
-                                       "category": response.meta["category"]},
+                                       "category": response.meta["category"],
+                                       "delivery_tag": response.meta["delivery_tag"]},
                                  dont_filter=True)
 
     @rmq_errback

@@ -77,7 +77,7 @@ class VikingDetailPageSpiderSpider(TaskToSingleResultSpider):
         item["description"] = self.get_description(response)
         item["brand"] = response.xpath("//a[@itemprop='brand']//text()").get()
         item["image_url"] = self.get_image_url(response)
-        item["additional_info"] = self.get_additional_info(response)
+        item["additional_info"] = json.dumps(self.get_additional_info(response))
         item["units"] = response.xpath(
             "//div[@class='product-price-panel__price-per']/div//text()"
         ).get()
@@ -126,7 +126,7 @@ class VikingDetailPageSpiderSpider(TaskToSingleResultSpider):
             try:
                 data_dict = json.loads(json_object_str)
                 item["current_price"] = float(
-                    data_dict.get("skuInfo").get("price")[0]["skuPriceinVAT"]
+                    data_dict.get("skuInfo").get("price")[0]["skuPriceinVAT"].replace(",", "")
                 )
                 item["image_file"] = f"viking_{data_dict.get('skuInfo').get('skuID')}.jpg"
 

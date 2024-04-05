@@ -54,7 +54,9 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
         return scrapy.Request(url=data["url"],
                               callback=self.parse,
                               errback=self.errback,
-                              meta={'position': data["position"], 'session': data["session"]},
+                              meta={'position': data["position"],
+                                    'session': data["session"],
+                                    "delivery_tag": _delivery_tag},
                               dont_filter=True)
 
     @rmq_callback
@@ -95,8 +97,9 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
             './/div[contains(@class, "pricing-wrap")]/div/div/span[contains(@class, "price-size") and contains(text('
             '), "$")]/text()').get()
         if current_price:
-            item["current_price"] = current_price.strip().replace("$", "")
-            item["currency"] = current_price.strip()[0]
+            item["current_price"] = float(current_price.strip().replace("$", "").replace(",", ""))
+            currency_dict = {"$": "USD"}
+            item["currency"] = currency_dict.get(current_price.strip()[0])
         else:
             item["current_price"] = current_price
             item["currency"] = None
@@ -108,7 +111,7 @@ class QuillProductsSpider(TaskToMultipleResultsSpider):
             './/div[contains(@class, "pricing-wrap")]/div/span[contains(@class, "elp-percentage")]/del[contains('
             'text(), "$")]/text()').get()
         if regular_price:
-            item["regular_price"] = regular_price.strip().replace("$", "")
+            item["regular_price"] = float(regular_price.strip().replace("$", "").replace(",", ""))
         else:
             item["regular_price"] = item["current_price"]
 

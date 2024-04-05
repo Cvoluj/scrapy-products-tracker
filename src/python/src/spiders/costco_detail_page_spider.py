@@ -90,10 +90,10 @@ class CostcoDetailPageSpider(TaskToSingleResultSpider):
         ).getall()
         if attributes:
             clean_attributes = [item.strip() for item in attributes if item.strip()]
-            item["additional_info"] = {
+            item["additional_info"] = json.dumps({
                 clean_attributes[i]: clean_attributes[i + 1]
                 for i in range(0, len(clean_attributes), 2)
-            }
+            })
 
         product_id = response.xpath("//input[@name='productBeanId']/@value").get()
         params = {
@@ -167,8 +167,8 @@ class CostcoDetailPageSpider(TaskToSingleResultSpider):
         try:
             data = response.json()
             if data:
-                regular_price = data.get("finalOnlinePrice")
-                discount = data.get("discount")
+                regular_price = float(data.get("finalOnlinePrice").replace(",", ""))
+                discount = float(data.get("discount").replace(",", ""))
                 item["regular_price"] = regular_price
                 item["current_price"] = regular_price - discount
         except json.JSONDecodeError:
