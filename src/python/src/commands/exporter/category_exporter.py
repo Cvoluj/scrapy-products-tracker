@@ -53,5 +53,5 @@ class NewExporter(CSVExporter):
         return path.join(export_path, file_name)
 
     def execute(self, args, opts: Namespace):
-        self.init_session_id(opts)
+        self.init_category_url(opts)
         return super().execute(args, opts)
