@@ -115,7 +115,7 @@ Array.from([producers, spiders, consumers, commands]).map(t => {
           error_file: path.join('logs', `${v.name}.log`),
           out_file: path.join('logs', `${v.name}.log`),
           max_restarts: 5,
-          max_memory_restart: "128M",
+          max_memory_restart: "1024M",
         },
         v,
         (v.hasOwnProperty('cron_restart')) ? {
