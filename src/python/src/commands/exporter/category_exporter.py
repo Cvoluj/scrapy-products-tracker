@@ -18,7 +18,7 @@ class NewExporter(CSVExporter):
         parser.add_argument(
             "-c",
             "--category",
-            type=int,
+            type=str,
             dest="category",
             help="Category url for select",
         )
