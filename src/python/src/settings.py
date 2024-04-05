@@ -16,7 +16,9 @@ BOT_NAME = "s1_products_tracker"
 SPIDER_MODULES = ["spiders"]
 NEWSPIDER_MODULE = "spiders"
 COMMANDS_MODULE = "commands"
-IMAGES_STORE = 'images'
+
+STORAGE_PATH = os.getenv("STORAGE_PATH", '../../../../storage/')
+IMAGES_STORE = STORAGE_PATH + os.getenv("IMAGES_STORE", 'images')
 
 ZORO_SPIDER_API_KEY = os.getenv("ZORO_SPIDER_API_KEY", "")
 CUSTOMINK_SPIDER_API_KEY = os.getenv("CUSTOMINK_SPIDER_API_KEY", "")
@@ -24,8 +26,8 @@ CUSTOMINK_SPIDER_APPLICATION_ID = os.getenv("CUSTOMINK_SPIDER_APPLICATION_ID", "
 
 SESSION_INTERVAL = os.getenv("SESSION_INTERVAL", "120")
 
-CATEGORY_FILE=os.getenv("CATEGORY_FILE", 'csv_file.csv')
-PRODUCTS_FILE=os.getenv("PRODUCTS_FILE", 'csv_file2.csv')
+CATEGORY_FILE = STORAGE_PATH + os.getenv("CATEGORY_FILE", 'categories.csv')
+PRODUCTS_FILE = STORAGE_PATH + os.getenv("PRODUCTS_FILE", 'products.csv')
 
 PROXY = os.getenv("PROXY", "")
 PROXY_AUTH = os.getenv("PROXY_AUTH", "")

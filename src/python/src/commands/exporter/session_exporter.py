@@ -31,7 +31,7 @@ class SessionExporter(CSVExporter):
             )
         self.session = session
         return session
-    
+
     def select_results(self):
         stmt = select([
                 ProductHistory.product_id.label('id'),
@@ -52,7 +52,7 @@ class SessionExporter(CSVExporter):
                 ProductTargets.created_at.label('product_created_at')
             ]).select_from(ProductHistory.__table__.join(ProductTargets)).where(ProductHistory.session == self.session)
         return stmt
-    
+
     def get_file_path(self, timestamp_format=None, prefix=None, postfix=None, extension=None):
         if timestamp_format is None:
             timestamp_format = self.file_timestamp_format

@@ -31,14 +31,14 @@ class NewExporter(CSVExporter):
             )
         self.category = category
         return category
-    
+
     def select_results(self):
         stmt = select([ProductTargets]
         ).where(ProductTargets.category == 'https://www.viking-direct.co.uk/en/archive-storage-c-110/storage-solutions-c-11001'
         ).order_by(ProductTargets.position)
-            
+
         return stmt
-    
+
     def get_file_path(self, timestamp_format=None, prefix=None, postfix=None, extension=None):
         if timestamp_format is None:
             timestamp_format = self.file_timestamp_format
