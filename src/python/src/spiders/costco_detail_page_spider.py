@@ -167,8 +167,8 @@ class CostcoDetailPageSpider(TaskToSingleResultSpider):
         try:
             data = response.json()
             if data:
-                regular_price = float(data.get("finalOnlinePrice").replace(",", ""))
-                discount = float(data.get("discount").replace(",", ""))
+                regular_price = data.get("finalOnlinePrice")
+                discount = data.get("discount")
                 item["regular_price"] = regular_price
                 item["current_price"] = regular_price - discount
         except json.JSONDecodeError:
