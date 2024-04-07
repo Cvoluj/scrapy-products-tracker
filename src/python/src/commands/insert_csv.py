@@ -1,23 +1,23 @@
-import csv
 from argparse import Namespace
 from scrapy.commands import ScrapyCommand
 from twisted.internet import reactor
-from sqlalchemy import update
-from rmq.utils.sql_expressions import compile_expression
+from twisted.internet.defer import Deferred
 
 from commands.base import BaseCommand
+from utils import CSVDatabase
 from database.models import *
 from database.connection import get_db
 
-
-class StopTracking(BaseCommand):
+class InsertCSV(BaseCommand):
     """
-    scrapy stop_tracking --model=ProductTargets --file=csv_file.csv
+    scrapy insert_csv --model=ProductTargets --file=csv_file.csv
     """
     
     def init(self):
         self.model = None
+        self.csv_file = None
         self.conn = get_db()
+        
 
     def add_options(self, parser):
         ScrapyCommand.add_options(self, parser)
@@ -61,23 +61,19 @@ class StopTracking(BaseCommand):
     def execute(self, args, opts: Namespace): 
         self.init_model_name(opts)      
         self.init_csv_file_name(opts)
-        with open(self.csv_file, mode='r') as file:
-            reader = csv.reader(file)
-            next(reader)
-            for row in reader:
-                self.update_tracking(row[0])
-                    
-    def update_tracking(self, url):
-        try:
-            stmt = update(self.model).where(self.model.url == url).values(is_tracked=0)
-            self.conn.runQuery(*compile_expression(stmt))
-        except Exception as e:
-            self.loggerr.error("Error updating item: %s", e)
+        self.csv_reader = CSVDatabase(self.csv_file, self.model)
+        d = self.csv_reader.insert_from_csv()
+        return d
 
-    def repeat_session(self):
-        self.update_status()
-        self.logger.warning('STATUS WERE UPDATED')
+    def __execute(self, args: list, opts: list) -> Deferred:
+        d = self.execute(args, opts)
+        d.addErrback(self.errback)
+        d.addBoth(lambda _: reactor.stop())
+        return d
+    
+    def errback(self, failure):
+        self.logger.error(failure)
 
     def run(self, args: list[str], opts: Namespace):
-        reactor.callLater(0, self.execute, args, opts)
+        reactor.callFromThread(self.__execute, args, opts)
         reactor.run()

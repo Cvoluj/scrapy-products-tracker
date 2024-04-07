@@ -1,10 +1,7 @@
 import csv, datetime
 from os import path
-from datetime import date
 from argparse import Namespace
-from scrapy.commands import ScrapyCommand
 from twisted.internet import reactor
-from sqlalchemy import select
 from rmq.utils.sql_expressions import compile_expression
 from typing import List, Dict
 from sqlalchemy.sql import ClauseElement

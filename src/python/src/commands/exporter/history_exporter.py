@@ -1,5 +1,3 @@
-import datetime
-from os import path
 from argparse import Namespace
 from scrapy.commands import ScrapyCommand
 from sqlalchemy import select

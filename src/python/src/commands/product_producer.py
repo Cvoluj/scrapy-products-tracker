@@ -11,6 +11,7 @@ class ProductProducer(DomainProducer):
     scrapy product_producer --chunk_size=500 --mode=worker
     notice, --task_queue became unnecessary, because it already defined. But if you want you still can change it
     """
+    _DEFAULT_DELAY_TIMEOUT = 3
 
     def __init__(self):
         super().__init__()
