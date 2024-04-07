@@ -7,7 +7,7 @@ from sqlalchemy import select
 from commands.abstract import CSVExporter
 from database.models import *
 
-class NewExporter(CSVExporter):
+class CategoryExporter(CSVExporter):
     filename_prefix = 'category'
     def init(self):
         super().init()
