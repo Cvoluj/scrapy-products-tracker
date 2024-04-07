@@ -1,5 +1,5 @@
 from scrapy.utils.project import get_project_settings
-from menues import *
+from markups import *
 
 
 project_settings = get_project_settings()
@@ -9,12 +9,12 @@ is_user_access = {}
 
 
 @bot.message_handler(commands=['start'])
-def start_message(message):
-    bot.send_message(message.chat.id, 'You pressed start', reply_markup=start_menu())
+def start(message):
+    bot.send_message(message.chat.id, 'You pressed start', reply_markup=start_markup())
 
 
 @bot.message_handler(commands=['help'])
-def start_message(message):
+def help_(message):
     bot.send_message(message.chat.id, f'Hello, {message.from_user.username}!\n'
                                       'This bot is created for interaction with a product tracker. '
                                       'To start working, you need to enter a code to access all functions, '
@@ -23,12 +23,12 @@ def start_message(message):
                                       'or categories you are interested in for tracking.'
                                       '\n\n 2. Ability to get tracking results by session number, category link,'
                                       ' or product link.',
-                     reply_markup=back_menu())
+                     reply_markup=back_markup())
 
 
 @bot.message_handler(commands=['back'])
-def back_handler(message):
-    bot.send_message(message.chat.id, 'Back to main menu', reply_markup=start_menu())
+def back(message):
+    bot.send_message(message.chat.id, 'Back to start menu', reply_markup=start_markup())
 
 
 @bot.message_handler(commands=['enter_code'])
@@ -38,28 +38,51 @@ def enter_access_code(message):
                                                     callback=handle_access_code))
 
 
+@bot.message_handler(commands=['main_menu'])
+def main_menu_(message):
+    bot.send_message(message.chat.id, 'Back to  menu', reply_markup=main_menu())
+
+
 @bot.message_handler(commands=['upload'])
-def handle_upload(message):
+def upload(message):
     if message.from_user.id in is_user_access.keys():
         bot.send_message(message.chat.id, 'Please, choose the type of uploaded links!\n'
-                                          'The file must be .csv format!', reply_markup=upload_menu())
+                                          'The file must be .csv format!', reply_markup=upload_markup())
     else:
         bot.send_message(message.chat.id, 'access denied! Please, enter access code',
                          bot.register_next_step_handler(message=message, callback=handle_access_code))
 
 
 @bot.message_handler(commands=['categories'])
-def handle_categories_file_upload(message):
+def categories_upload(message):
     bot.send_message(message.chat.id, 'Please upload a CSV file with categories',
                      bot.register_next_step_handler(message=message, callback=handle_csv_file,
                                                     upload_prefix='CategoryTargets'))
 
 
 @bot.message_handler(commands=['products'])
-def handle_products_file_upload(message):
+def products_upload(message):
     bot.send_message(message.chat.id, 'Please upload a CSV file with products',
                      bot.register_next_step_handler(message=message, callback=handle_csv_file,
                                                     upload_prefix='ProductTargets'))
+
+
+@bot.message_handler(commands=['download'])
+def download(message):
+    # сделать метод и достать из базы все текущие сессии. А также подсчитать сколько всего записей в таблицах
+    # product_targets, category_targets
+    number_of_sessions = 10
+    category_targets = 100
+    product_targets = 10000
+    bot.send_message(message.chat.id, f'In this menu you can get the results of the sessions.\n'
+                                      f'We have currently completed:\n '
+                                      f'{number_of_sessions} sessions \n'
+                                      f'by {category_targets} categories \n'
+                                      f'with {product_targets} products \n'
+                                      f'You can get results by session number, product link, category link',
+                     reply_markup=get_results_markup())
+
+
 
 
 def handle_access_code(message):
@@ -67,7 +90,7 @@ def handle_access_code(message):
         if message.text == access_code:
             is_user_access[message.from_user.id] = True
             bot.send_message(message.chat.id, f"Your code accepted, {message.from_user.username}",
-                             reply_markup=csv_menu())
+                             reply_markup=main_menu())
 
         else:
             bot.send_message(message.chat.id, "Incorrect code!")
