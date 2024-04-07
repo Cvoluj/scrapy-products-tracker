@@ -23,12 +23,6 @@ from telebot import types
 #     markup.add(button_help, button_enter_code)
 #     return markup
 
-def start_menu():
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    button_start = types.KeyboardButton(text='Start')
-    markup.add(button_start)
-    return markup
-
 
 def new_menu():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -37,7 +31,7 @@ def new_menu():
     return markup
 
 
-def main_menu():
+def start_menu():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     button_help = types.KeyboardButton(text='/help')
     button_enter_code = types.KeyboardButton(text='/enter_code')
@@ -47,6 +41,23 @@ def main_menu():
 
 def back_menu():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    button_back = types.KeyboardButton(text='/back')
-    markup.add(button_back)
+    back = types.KeyboardButton(text='/back')
+    markup.add(back)
+    return markup
+
+
+def csv_menu():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    upload_button = types.KeyboardButton(text='/upload')
+    back = types.KeyboardButton(text='/back')
+    markup.add(upload_button, back)
+    return markup
+
+
+def upload_menu():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    category_button = types.KeyboardButton(text='/categories')
+    product_button = types.KeyboardButton(text='/products')
+    back = types.KeyboardButton(text='/back')
+    markup.add(category_button, product_button, back)
     return markup
