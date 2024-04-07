@@ -1,10 +1,7 @@
 import csv, datetime
 from os import path
-from datetime import date
 from argparse import Namespace
-from scrapy.commands import ScrapyCommand
 from twisted.internet import reactor
-from sqlalchemy import select
 from rmq.utils.sql_expressions import compile_expression
 from typing import List, Dict
 from sqlalchemy.sql import ClauseElement
@@ -116,7 +113,7 @@ class CSVExporter(BaseCommand):
             postfix = self.filename_postfix
         if extension is None:
             extension = self.file_extension
-        export_path = path.join(path.abspath('..'), 'storage')
+        export_path = path.join(path.abspath('../../../../storage/'), 'export')
         file_name = f'{prefix}{datetime.datetime.now().strftime(timestamp_format)}{postfix}.{extension}'
         return path.join(export_path, file_name)
 

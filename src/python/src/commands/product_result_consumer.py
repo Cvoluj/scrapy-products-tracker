@@ -1,5 +1,3 @@
-import json
-
 from sqlalchemy.dialects.mysql import insert
 from sqlalchemy.sql import select
 

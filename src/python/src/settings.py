@@ -19,6 +19,7 @@ COMMANDS_MODULE = "commands"
 
 STORAGE_PATH = os.getenv("STORAGE_PATH", '../../../../storage/')
 IMAGES_STORE = STORAGE_PATH + os.getenv("IMAGES_STORE", 'images')
+EXPORT_STORAGE = STORAGE_PATH + 'export'
 
 ZORO_SPIDER_API_KEY = os.getenv("ZORO_SPIDER_API_KEY", "")
 CUSTOMINK_SPIDER_API_KEY = os.getenv("CUSTOMINK_SPIDER_API_KEY", "")

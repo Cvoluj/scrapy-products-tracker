@@ -1,6 +1,5 @@
 from argparse import Namespace
 from scrapy.commands import ScrapyCommand
-from scrapy.utils.project import get_project_settings
 from twisted.internet import reactor, task
 from sqlalchemy import update, select, desc
 from sqlalchemy.dialects.mysql import Insert, insert
@@ -113,4 +112,3 @@ class StartTracking(BaseCommand):
     def run(self, args: list[str], opts: Namespace):
         reactor.callLater(0, self.execute, args, opts)
         reactor.run()
-

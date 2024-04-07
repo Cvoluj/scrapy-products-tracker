@@ -1,5 +1,3 @@
-import datetime
-from os import path
 from argparse import Namespace
 from scrapy.commands import ScrapyCommand
 from sqlalchemy import select
@@ -7,7 +5,7 @@ from sqlalchemy import select
 from commands.abstract import CSVExporter
 from database.models import *
 
-class SessionExporter(CSVExporter):
+class HistoryExporter(CSVExporter):
     filename_prefix = 'history_'
     def init(self):
         super().init()

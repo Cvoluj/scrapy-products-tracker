@@ -1,4 +1,3 @@
-import json, functools, pika
 from argparse import Namespace
 from sqlalchemy import Table
 

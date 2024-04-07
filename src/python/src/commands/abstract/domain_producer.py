@@ -1,9 +1,7 @@
 import json, functools, pika
 from argparse import Namespace
-from sqlalchemy import Table
 
 from rmq.commands import Producer
-from utils import CSVDatabase
 
 
 class DomainProducer(Producer):

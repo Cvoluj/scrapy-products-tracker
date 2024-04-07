@@ -95,17 +95,17 @@ const spiders = [
 
 const producers = [
   {
-    name: `${PROJECT_PREFIX}_csv_category_producer`,
+    name: `${PROJECT_PREFIX}_category_producer`,
     script: SCRAPY_SCRIPT,
-    args: "csv_category_producer --chunk_size=500 --mode=worker",
+    args: "category_producer --chunk_size=500 --mode=worker",
     interpreter: PYTHON_INTERPRETER,
     instances: 1,
     autorestart: true,
   },
   {
-    name: `${PROJECT_PREFIX}_csv_product_producer`,
+    name: `${PROJECT_PREFIX}_product_producer`,
     script: SCRAPY_SCRIPT,
-    args: "csv_product_producer --chunk_size=500 --mode=worker",
+    args: "product_producer --chunk_size=500 --mode=worker",
     interpreter: PYTHON_INTERPRETER,
     instances: 1,
     autorestart: true,
@@ -148,22 +148,22 @@ const consumers = [
 ];
 
 const commands = [
-  {
-    name: `${PROJECT_PREFIX}_start_category_tracking`,
-    script: SCRAPY_SCRIPT,
-    args: "start_tracking --model=CategoryTargets",
-    interpreter: PYTHON_INTERPRETER,
-    instances: 1,
-    autorestart: true,
-  },
-  {
-    name: `${PROJECT_PREFIX}_start_products_tracking`,
-    script: SCRAPY_SCRIPT,
-    args: "start_tracking --model=ProductTargets",
-    interpreter: PYTHON_INTERPRETER,
-    instances: 1,
-    autorestart: true,
-  },
+  // {
+  //   name: `${PROJECT_PREFIX}_start_category_tracking`,
+  //   script: SCRAPY_SCRIPT,
+  //   args: "start_tracking --model=CategoryTargets",
+  //   interpreter: PYTHON_INTERPRETER,
+  //   instances: 1,
+  //   autorestart: true,
+  // },
+  // {
+  //   name: `${PROJECT_PREFIX}_start_products_tracking`,
+  //   script: SCRAPY_SCRIPT,
+  //   args: "start_tracking --model=ProductTargets",
+  //   interpreter: PYTHON_INTERPRETER,
+  //   instances: 1,
+  //   autorestart: true,
+  // },
 ];
 
 const processNames = [];
