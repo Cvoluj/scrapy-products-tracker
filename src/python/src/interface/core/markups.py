@@ -66,9 +66,13 @@ def upload_markup():
 
 def get_results_markup():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    get_result_by_session_button = types.KeyboardButton(text='/session-id')
-    get_result_by_product_button = types.KeyboardButton(text='/product-link')
-    get_result_by_category_button = types.KeyboardButton(text='/category-link')
+    get_result_by_session_button = types.KeyboardButton(text='/session_id')
+    get_result_by_product_button = types.KeyboardButton(text='/product_link')
+    get_result_by_category_button = types.KeyboardButton(text='/category_link')
     back = types.KeyboardButton(text='/main_menu')
     markup.add(get_result_by_category_button, get_result_by_product_button, get_result_by_session_button, back)
     return markup
+
+
+def sessions_markup():
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)

@@ -1,5 +1,3 @@
-import telebot ,threading, argparse
-from twisted.internet import reactor
 from scrapy.utils.project import get_project_settings
 from commands.exporter import SessionExporter, HistoryExporter, CategoryExporter
 from interface.core.markups import *
@@ -12,7 +10,8 @@ import logging
 project_settings = get_project_settings()
 bot = telebot.TeleBot(project_settings.get("BOT_TOKEN"))
 access_code = project_settings.get("ACCESS_CODE")
-is_user_access = {}
+user_has_access = {}
+
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -51,7 +50,7 @@ def main_menu_(message):
 
 @bot.message_handler(commands=['upload'])
 def upload(message):
-    if message.from_user.id in is_user_access.keys():
+    if user_has_access.get(message.from_user.id):
         bot.send_message(message.chat.id, 'Please, choose the type of uploaded links!\n'
                                           'The file must be .csv format!', reply_markup=upload_markup())
     else:
@@ -61,42 +60,50 @@ def upload(message):
 
 @bot.message_handler(commands=['categories'])
 def categories_upload(message):
-    bot.send_message(message.chat.id, 'Please upload a CSV file with categories',
-                     bot.register_next_step_handler(message=message, callback=handle_csv_file, bot=bot,
-                                                    upload_prefix='CategoryTargets'))
+    if user_has_access.get(message.from_user.id):
+        bot.send_message(message.chat.id, 'Please upload a CSV file with categories',
+                         bot.register_next_step_handler(message=message, callback=handle_csv_file, bot=bot,
+                                                        upload_prefix='CategoryTargets'))
+    else:
+        bot.send_message(message.chat.id, 'access denied! Please, enter access code',
+                         bot.register_next_step_handler(message=message, callback=handle_access_code))
 
 
 @bot.message_handler(commands=['products'])
 def products_upload(message):
-    bot.send_message(message.chat.id, 'Please upload a CSV file with products',
-                     bot.register_next_step_handler(message=message, callback=handle_csv_file, bot=bot,
-                                                    upload_prefix='ProductTargets'))
+    if user_has_access.get(message.from_user.id):
+        bot.send_message(message.chat.id, 'Please upload a CSV file with products',
+                         bot.register_next_step_handler(message=message, callback=handle_csv_file, bot=bot,
+                                                        upload_prefix='ProductTargets'))
+    else:
+        bot.send_message(message.chat.id, 'access denied! Please, enter access code',
+                         bot.register_next_step_handler(message=message, callback=handle_access_code))
 
 
 @bot.message_handler(commands=['download'])
 def download(message):
-    # сделать метод и достать из базы все текущие сессии. А также подсчитать сколько всего записей в таблицах
-    # product_targets, category_targets
-
-
-    number_of_sessions = 10
-    category_targets = 100
-    product_targets = 10000
-    bot.send_message(message.chat.id, f'In this menu you can get the results of the sessions.\n'
-                                      f'We have currently completed:\n '
-                                      f'{number_of_sessions} sessions \n'
-                                      f'by {category_targets} categories \n'
-                                      f'with {product_targets} products \n'
-                                      f'You can get results by session number, product link, category link',
-                     reply_markup=get_results_markup())
-
-
+    if user_has_access.get(message.from_user.id):
+        # сделать метод и достать из базы все текущие сессии. А также подсчитать сколько всего записей в таблицах
+        # product_targets, category_targets
+        number_of_sessions = 10
+        category_targets = 100
+        product_targets = 10000
+        bot.send_message(message.chat.id, f'In this menu you can get the results of the sessions.\n'
+                                          f'We have currently completed:\n '
+                                          f'{number_of_sessions} sessions \n'
+                                          f'by {category_targets} categories \n'
+                                          f'with {product_targets} products \n'
+                                          f'You can get results by session number, product link, category link',
+                         reply_markup=get_results_markup())
+    else:
+        bot.send_message(message.chat.id, 'access denied! Please, enter access code',
+                         bot.register_next_step_handler(message=message, callback=handle_access_code))
 
 
 def handle_access_code(message):
     if message:
         if message.text == access_code:
-            is_user_access[message.from_user.id] = True
+            user_has_access[message.from_user.id] = True
             bot.send_message(message.chat.id, f"Your code accepted, {message.from_user.username}",
                              reply_markup=main_menu())
 
@@ -104,13 +111,12 @@ def handle_access_code(message):
             bot.send_message(message.chat.id, "Incorrect code!")
 
 
-
 def handle_csv_file(message, upload_prefix, bot):
     if message.document.mime_type == 'text/csv':
 
         file_info = bot.get_file(message.document.file_id)
         downloaded_file = bot.download_file(file_info.file_path)
-        
+
         file_name = message.document.file_name
         file_path = f'../../../../storage/{file_name}'
 
@@ -128,9 +134,10 @@ def handle_csv_file(message, upload_prefix, bot):
     else:
         bot.reply_to(message.chat.id, "Please upload a CSV file.")
 
+
 @bot.message_handler(commands=['category-link'])
 def handle_category_link(message):
-    if message.from_user.id in is_user_access.keys():
+    if user_has_access.get(message.from_user.id):
         bot.send_message(message.chat.id, 'Please enter the category link:',
                          bot.register_next_step_handler(message=message, callback=export_category_results))
     else:
@@ -148,11 +155,12 @@ def export_category_results(message):
     category_exporter.settings = project_settings
     reactor.callInThread(category_exporter.execute, None, opts)
 
-
     bot.send_message(message.chat.id, 'Exporting category results...')
+
 
 def start_bot():
     threading.Thread(target=bot.polling, kwargs={'none_stop': True}).start()
     reactor.run()
+
 
 start_bot()
