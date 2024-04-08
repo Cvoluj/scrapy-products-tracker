@@ -72,7 +72,7 @@ class CSVExporter(BaseCommand):
                 self.logger.warning(f'Export finished successfully to {path.basename(self.file_path)}.')
             else:
                 self.logger.warning('Nothing found')
-            reactor.stop()
+            # reactor.stop()
         else:
             rows = self.map_columns(rows)
             self.get_headers(rows[0])

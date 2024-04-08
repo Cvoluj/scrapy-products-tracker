@@ -1,10 +1,13 @@
-from scrapy.utils.project import get_project_settings
-from utils import CSVDatabase
-from database.models import ProductTargets, CategoryTargets
-from interface.core.markups import *
+import telebot ,threading, argparse
 from twisted.internet import reactor
-import telebot
-import threading
+from scrapy.utils.project import get_project_settings
+from commands.exporter import SessionExporter, HistoryExporter, CategoryExporter
+from interface.core.markups import *
+from database.models import ProductTargets, CategoryTargets
+from utils import CSVDatabase
+from argparse import Namespace
+import logging
+
 
 project_settings = get_project_settings()
 bot = telebot.TeleBot(project_settings.get("BOT_TOKEN"))
@@ -74,6 +77,8 @@ def products_upload(message):
 def download(message):
     # сделать метод и достать из базы все текущие сессии. А также подсчитать сколько всего записей в таблицах
     # product_targets, category_targets
+
+
     number_of_sessions = 10
     category_targets = 100
     product_targets = 10000
@@ -115,13 +120,36 @@ def handle_csv_file(message, upload_prefix, bot):
             model = CategoryTargets
 
         csv_reader = CSVDatabase(file_path, model)
-        csv_reader.insert_from_csv()
+        reactor.callInThread(csv_reader.insert_from_csv)
 
         with open(file_path, 'wb') as new_file:
             new_file.write(downloaded_file)
         bot.send_message(message.chat.id, f'Saved! {upload_prefix}')
     else:
         bot.reply_to(message.chat.id, "Please upload a CSV file.")
+
+@bot.message_handler(commands=['category-link'])
+def handle_category_link(message):
+    if message.from_user.id in is_user_access.keys():
+        bot.send_message(message.chat.id, 'Please enter the category link:',
+                         bot.register_next_step_handler(message=message, callback=export_category_results))
+    else:
+        bot.send_message(message.chat.id, 'Access denied! Please enter access code.',
+                         bot.register_next_step_handler(message=message, callback=handle_access_code))
+
+
+def export_category_results(message):
+    category_url = message.text
+    opts = Namespace(category=category_url)
+
+    category_exporter = CategoryExporter()
+    category_exporter.init()
+    category_exporter.logger = logging.getLogger(name=CategoryExporter.__name__)
+    category_exporter.settings = project_settings
+    reactor.callInThread(category_exporter.execute, None, opts)
+
+
+    bot.send_message(message.chat.id, 'Exporting category results...')
 
 def start_bot():
     threading.Thread(target=bot.polling, kwargs={'none_stop': True}).start()
