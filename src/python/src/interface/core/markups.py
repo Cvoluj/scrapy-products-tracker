@@ -76,3 +76,8 @@ def get_results_markup():
 
 def sessions_markup():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    start_tracking = types.KeyboardButton(text='start_tracking')
+    stop_tracking = types.KeyboardButton(text='stop_tracking')
+    back = types.KeyboardButton(text='/download')
+    markup.add(start_tracking, stop_tracking, back)
+    return markup

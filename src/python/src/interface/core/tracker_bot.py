@@ -9,10 +9,17 @@ from interface.core.markups import *
 from database.models import ProductTargets, CategoryTargets
 from commands.exporter import SessionExporter, HistoryExporter, CategoryExporter
 
+from twisted.internet import reactor
+import telebot
+import threading
+
+
 project_settings = get_project_settings()
 bot = telebot.TeleBot(project_settings.get("BOT_TOKEN"))
 access_code = project_settings.get("ACCESS_CODE")
 user_has_access = {}
+user_has_upload_files = {}
+is_session_started = {}
 
 
 @bot.message_handler(commands=['start'])
@@ -56,27 +63,49 @@ def upload(message):
         bot.send_message(message.chat.id, 'Please, choose the type of uploaded links!\n'
                                           'The file must be .csv format!', reply_markup=upload_markup())
     else:
-        bot.send_message(message.chat.id, 'access denied! Please, enter access code',
-                         bot.register_next_step_handler(message=message, callback=handle_access_code))
+        bot.send_message(message.chat.id, 'access denied! Please, enter access code')
+        bot.register_next_step_handler(message=message, callback=handle_access_code)
 
 
 @bot.message_handler(commands=['categories'])
 def categories_upload(message):
     if user_has_access.get(message.from_user.id):
-        bot.send_message(message.chat.id, 'Please upload a CSV file with categories',
-                         bot.register_next_step_handler(message=message, callback=handle_csv_file, bot=bot,
-                                                        upload_prefix='CategoryTargets'))
+        # Check if the user hasn't already uploaded a file with categories
+        if not user_has_upload_files.get(message.from_user.id, {}).get('category'):
+            bot.send_message(message.chat.id, 'Please upload a CSV file with categories',
+                             bot.register_next_step_handler(message=message, callback=handle_csv_file, bot=bot,
+                                                            upload_prefix='CategoryTargets'))
+            if message.from_user.id not in user_has_upload_files:
+                user_has_upload_files[message.from_user.id] = {}
+            # Set the value of "category" key to True to indicate that the user has uploaded a file with categories
+            user_has_upload_files[message.from_user.id]["category"] = True
+        else:
+            bot.send_message(message.chat.id, "Error!\n"
+                                              "You have already uploaded a file with categories!\n"
+                                              " You can start tracking the current links,"
+                                              f" and after stopping tracking upload a new file.{user_has_upload_files}")
     else:
-        bot.send_message(message.chat.id, 'access denied! Please, enter access code',
-                         bot.register_next_step_handler(message=message, callback=handle_access_code))
+        bot.send_message(message.chat.id, 'access denied! Please, enter access code')
+        bot.register_next_step_handler(message=message, callback=handle_access_code)
 
 
 @bot.message_handler(commands=['products'])
 def products_upload(message):
     if user_has_access.get(message.from_user.id):
-        bot.send_message(message.chat.id, 'Please upload a CSV file with products',
-                         bot.register_next_step_handler(message=message, callback=handle_csv_file, bot=bot,
-                                                        upload_prefix='ProductTargets'))
+        # Check if the user hasn't already uploaded a file with products
+        if not user_has_upload_files.get(message.from_user.id, {}).get('product'):
+            bot.send_message(message.chat.id, 'Please upload a CSV file with products',
+                             bot.register_next_step_handler(message=message, callback=handle_csv_file, bot=bot,
+                                                            upload_prefix='ProductTargets'))
+            if message.from_user.id not in user_has_upload_files:
+                user_has_upload_files[message.from_user.id] = {}
+            # Set the value of "product" key to True to indicate that the user has uploaded a file with products
+            user_has_upload_files[message.from_user.id]["product"] = True
+        else:
+            bot.send_message(message.chat.id, f'Error!\n'
+                                              f'You have already uploaded a file with products!\n'
+                                              f'You can start tracking the current links,'
+                                              f'and after stopping tracking upload a new file.{user_has_upload_files}')
     else:
         bot.send_message(message.chat.id, 'access denied! Please, enter access code',
                          bot.register_next_step_handler(message=message, callback=handle_access_code))
@@ -99,6 +128,25 @@ def download(message):
                          reply_markup=get_results_markup())
     else:
         bot.send_message(message.chat.id, 'access denied! Please, enter access code',
+                         bot.register_next_step_handler(message=message, callback=handle_access_code))
+
+
+@bot.message_handler(content_types=["text"])
+def handle_text_commands(message):
+    match message.text:
+        case "start_tracking":
+            pass
+        case "stop_tracking":
+            pass
+
+
+@bot.message_handler(commands=['category_link'])
+def handle_category_link(message):
+    if user_has_access.get(message.from_user.id):
+        bot.send_message(message.chat.id, 'Please enter the category link:',
+                         bot.register_next_step_handler(message=message, callback=export_category_results))
+    else:
+        bot.send_message(message.chat.id, 'Access denied! Please enter access code.',
                          bot.register_next_step_handler(message=message, callback=handle_access_code))
 
 
@@ -229,10 +277,10 @@ def send_file(message, file_path):
     except:
         bot.send_message(message.chat.id, "File wasn't created, try send correct query")
 
+    bot.send_message(message.chat.id, 'Exporting category results...')
 
 def start_bot():
     threading.Thread(target=bot.polling, kwargs={'none_stop': True}).start()
     reactor.run()
-
 
 start_bot()
