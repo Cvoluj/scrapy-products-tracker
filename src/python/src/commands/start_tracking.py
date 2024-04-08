@@ -79,8 +79,8 @@ class StartTracking(BaseCommand):
     def execute(self, args, opts: Namespace):
         self.init_model_name(opts)
 
-        repeat_session_task = task.LoopingCall(self.repeat_session)
-        reactor.callLater(self.interval, repeat_session_task.start, self.interval)
+        self.repeat_session_task = task.LoopingCall(self.repeat_session)
+        reactor.callLater(self.interval, self.repeat_session_task.start, self.interval)
 
     def update_session(self):
         try:
@@ -109,6 +109,12 @@ class StartTracking(BaseCommand):
         d.addCallback(lambda _: self.update_status())
         self.logger.warning('STATUS WERE UPDATED')
 
+    def stop(self):
+        try:
+            self.repeat_session_task.stop()
+        except:
+            pass
+        
     def run(self, args: list[str], opts: Namespace):
         reactor.callLater(0, self.execute, args, opts)
         reactor.run()

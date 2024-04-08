@@ -67,7 +67,8 @@ class CSVDatabase:
             stmt: Insert = insert(self.model)
             stmt = stmt.on_duplicate_key_update({
                 'status': TaskStatusCodes.NOT_PROCESSED,
-                'session': self.session_id
+                'session': self.session_id,
+                'is_tracked': 1,
             }).values(**values)
 
             self.conn.runQuery(*compile_expression(stmt))
