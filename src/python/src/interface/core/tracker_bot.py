@@ -8,7 +8,7 @@ from utils import CSVDatabase
 from interface.core.markups import *
 from database.models import ProductTargets, CategoryTargets
 from commands.exporter import SessionExporter, HistoryExporter, CategoryExporter
-from commands import StartTracking, StopTracking
+from commands import StartTracking, StopTracking, GetSessions
 
 from twisted.internet import reactor
 import telebot
@@ -120,12 +120,16 @@ def download(message):
         number_of_sessions = 10
         category_targets = 100
         product_targets = 10000
+        sessions = GetSessions()
+        sessions.init()
+        result = sessions.execute(None)
+
         bot.send_message(message.chat.id, f'In this menu you can get the results of the sessions.\n'
                                           f'We have currently completed:\n '
                                           f'{number_of_sessions} sessions \n'
                                           f'by {category_targets} categories \n'
                                           f'with {product_targets} products \n'
-                                          f'You can get results by session number, product link, category link',
+                                          f'You can get results by session number, product link, category link{result}',
                          reply_markup=get_results_markup())
     else:
         bot.send_message(message.chat.id, 'access denied! Please, enter access code')
