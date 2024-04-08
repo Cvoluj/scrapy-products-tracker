@@ -12,7 +12,7 @@ class GetSessions(BaseCommand):
         self.conn = get_db()
 
     def select_results(self):
-        stmt = select([Sessions.id, Sessions.target])
+        stmt = select([Sessions.id, Sessions.target]).order_by(Sessions.id.desc()).limit(100)
         return stmt
 
     def get_interaction(self, transaction):
@@ -28,8 +28,11 @@ class GetSessions(BaseCommand):
             transaction.execute(stmt)
 
         return transaction.fetchall()
+    
+    def handle_interaction(self, rows):
+        return rows
 
     def execute(self, args):
         d = self.conn.runInteraction(self.get_interaction)
-        return d
+        return d.addCallback(self.handle_interaction)
 

@@ -123,14 +123,14 @@ def download(message):
         sessions = GetSessions()
         sessions.init()
         result = sessions.execute(None)
-
-        bot.send_message(message.chat.id, f'In this menu you can get the results of the sessions.\n'
-                                          f'We have currently completed:\n '
-                                          f'{number_of_sessions} sessions \n'
-                                          f'by {category_targets} categories \n'
-                                          f'with {product_targets} products \n'
-                                          f'You can get results by session number, product link, category link{result}',
-                         reply_markup=get_results_markup())
+        result.addCallback(lambda result: logging.warning(result))
+        # bot.send_message(message.chat.id, f'In this menu you can get the results of the sessions.\n'
+        #                                   f'We have currently completed:\n '
+        #                                   f'{number_of_sessions} sessions \n'
+        #                                   f'by {category_targets} categories \n'
+        #                                   f'with {product_targets} products \n'
+        #                                   f'You can get results by session number, product link, category link{result}',
+        #                  reply_markup=get_results_markup())
     else:
         bot.send_message(message.chat.id, 'access denied! Please, enter access code')
         bot.register_next_step_handler(message=message, callback=handle_access_code)
