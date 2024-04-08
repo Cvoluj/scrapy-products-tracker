@@ -19,7 +19,7 @@ bot = telebot.TeleBot(project_settings.get("BOT_TOKEN"))
 access_code = project_settings.get("ACCESS_CODE")
 user_has_access = {}
 user_has_upload_files = {}
-is_session_started = {}
+is_tracking_started = {}
 
 
 @bot.message_handler(commands=['start'])
@@ -134,8 +134,8 @@ def download(message):
 @bot.message_handler(commands=['category_link'])
 def handle_category_link(message):
     if user_has_access.get(message.from_user.id):
-        bot.send_message(message.chat.id, 'Please enter the category link:',
-                         bot.register_next_step_handler(message=message, callback=export_category_results))
+        bot.send_message(message.chat.id, 'Please enter the category link:')
+        bot.register_next_step_handler(message=message, callback=export_category_results)
     else:
         bot.send_message(message.chat.id, 'Access denied! Please enter access code.')
         bot.register_next_step_handler(message=message, callback=handle_access_code)
@@ -144,8 +144,8 @@ def handle_category_link(message):
 @bot.message_handler(commands=['product_link'])
 def handle_history_link(message):
     if user_has_access.get(message.from_user.id):
-        bot.send_message(message.chat.id, 'Please enter the product link, to get history:',
-                         bot.register_next_step_handler(message=message, callback=export_history_results))
+        bot.send_message(message.chat.id, 'Please enter the product link, to get history:')
+        bot.register_next_step_handler(message=message, callback=export_history_results)
     else:
         bot.send_message(message.chat.id, 'Access denied! Please enter access code.')
         bot.register_next_step_handler(message=message, callback=handle_access_code)
@@ -154,8 +154,21 @@ def handle_history_link(message):
 @bot.message_handler(commands=['session_id'])
 def handle_session_id(message):
     if user_has_access.get(message.from_user.id):
-        bot.send_message(message.chat.id, 'Please enter the session id:',
-                         bot.register_next_step_handler(message=message, callback=export_session_results))
+        bot.send_message(message.chat.id, 'Please enter the session id:',)
+        bot.register_next_step_handler(message=message, callback=export_session_results)
+    else:
+        bot.send_message(message.chat.id, 'Access denied! Please enter access code.')
+        bot.register_next_step_handler(message=message, callback=handle_access_code)
+
+
+@bot.message_handler(commands=['tracker'])
+def tracker_menu(message):
+    user_id = message.from_user.id
+    if user_has_access.get(user_id):
+        bot.send_message(message.from_user.id, "In this menu, you can start tracking the categories\n"
+                                               " and products you have uploaded, \n"
+                                               "as well as stop tracking if it was initiated earlier.",
+                         reply_markup=tracker_markup())
     else:
         bot.send_message(message.chat.id, 'Access denied! Please enter access code.')
         bot.register_next_step_handler(message=message, callback=handle_access_code)
@@ -163,11 +176,25 @@ def handle_session_id(message):
 
 @bot.message_handler(content_types=["text"])
 def handle_text_commands(message):
-    match message.text:
-        case "start_tracking":
-            pass
-        case "stop_tracking":
-            pass
+    user_id = message.from_user.id
+    if user_has_access.get(user_id):
+        match message.text, is_tracking_started.get(user_id):
+            case "start_tracking", None:
+                bot.send_message(message.chat.id, "Starting tracking by schedule")
+                is_tracking_started[user_id] = True
+            case "stop_tracking", True:
+                bot.send_message(message.chat.id, "Stopping tracking by schedule.\n\n"
+                                                  "Current session will end up anyway!")
+                is_tracking_started[user_id] = None
+            case "start_tracking", True:
+                bot.send_message(message.chat.id, "Tracking has been already activated")
+
+            case "stop_tracking", None:
+                bot.send_message(message.chat.id, "Tracking has been already stopped")
+
+    else:
+        bot.send_message(message.chat.id, 'Access denied! Please enter access code.')
+        bot.register_next_step_handler(message=message, callback=handle_access_code)
 
 
 def handle_access_code(message):
