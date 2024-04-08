@@ -1,7 +1,7 @@
 import logging
 import telebot, threading, re, os
 from argparse import Namespace
-from twisted.internet import reactor, task     
+from twisted.internet import reactor, task
 from scrapy.utils.project import get_project_settings
 
 from utils import CSVDatabase
@@ -107,8 +107,8 @@ def products_upload(message):
                                               f'You can start tracking the current links,'
                                               f'and after stopping tracking upload a new file.{user_has_upload_files}')
     else:
-        bot.send_message(message.chat.id, 'access denied! Please, enter access code',
-                         bot.register_next_step_handler(message=message, callback=handle_access_code))
+        bot.send_message(message.chat.id, 'access denied! Please, enter access code')
+        bot.register_next_step_handler(message=message, callback=handle_access_code)
 
 
 @bot.message_handler(commands=['download'])
@@ -127,8 +127,38 @@ def download(message):
                                           f'You can get results by session number, product link, category link',
                          reply_markup=get_results_markup())
     else:
-        bot.send_message(message.chat.id, 'access denied! Please, enter access code',
-                         bot.register_next_step_handler(message=message, callback=handle_access_code))
+        bot.send_message(message.chat.id, 'access denied! Please, enter access code')
+        bot.register_next_step_handler(message=message, callback=handle_access_code)
+
+
+@bot.message_handler(commands=['category_link'])
+def handle_category_link(message):
+    if user_has_access.get(message.from_user.id):
+        bot.send_message(message.chat.id, 'Please enter the category link:',
+                         bot.register_next_step_handler(message=message, callback=export_category_results))
+    else:
+        bot.send_message(message.chat.id, 'Access denied! Please enter access code.')
+        bot.register_next_step_handler(message=message, callback=handle_access_code)
+
+
+@bot.message_handler(commands=['product_link'])
+def handle_history_link(message):
+    if user_has_access.get(message.from_user.id):
+        bot.send_message(message.chat.id, 'Please enter the product link, to get history:',
+                         bot.register_next_step_handler(message=message, callback=export_history_results))
+    else:
+        bot.send_message(message.chat.id, 'Access denied! Please enter access code.')
+        bot.register_next_step_handler(message=message, callback=handle_access_code)
+
+
+@bot.message_handler(commands=['session_id'])
+def handle_session_id(message):
+    if user_has_access.get(message.from_user.id):
+        bot.send_message(message.chat.id, 'Please enter the session id:',
+                         bot.register_next_step_handler(message=message, callback=export_session_results))
+    else:
+        bot.send_message(message.chat.id, 'Access denied! Please enter access code.')
+        bot.register_next_step_handler(message=message, callback=handle_access_code)
 
 
 @bot.message_handler(content_types=["text"])
@@ -138,16 +168,6 @@ def handle_text_commands(message):
             pass
         case "stop_tracking":
             pass
-
-
-@bot.message_handler(commands=['category_link'])
-def handle_category_link(message):
-    if user_has_access.get(message.from_user.id):
-        bot.send_message(message.chat.id, 'Please enter the category link:',
-                         bot.register_next_step_handler(message=message, callback=export_category_results))
-    else:
-        bot.send_message(message.chat.id, 'Access denied! Please enter access code.',
-                         bot.register_next_step_handler(message=message, callback=handle_access_code))
 
 
 def handle_access_code(message):
@@ -185,45 +205,6 @@ def handle_csv_file(message, upload_prefix, bot):
         bot.reply_to(message.chat.id, "Please upload a CSV file.")
 
 
-@bot.message_handler(commands=['category_link'])
-def handle_category_link(message):
-    if user_has_access.get(message.from_user.id):
-        bot.send_message(message.chat.id, 'Please enter the category link:',
-                         bot.register_next_step_handler(message=message, callback=export_category_results))
-    else:
-        bot.send_message(message.chat.id, 'Access denied! Please enter access code.',
-                         bot.register_next_step_handler(message=message, callback=handle_access_code))
-        
-
-@bot.message_handler(commands=['product_link'])
-def handle_history_link(message):
-    if user_has_access.get(message.from_user.id):
-        bot.send_message(message.chat.id, 'Please enter the product link, to get history:',
-                         bot.register_next_step_handler(message=message, callback=export_history_results))
-    else:
-        bot.send_message(message.chat.id, 'Access denied! Please enter access code.',
-                         bot.register_next_step_handler(message=message, callback=handle_access_code))
-        
-
-@bot.message_handler(commands=['category_link'])
-def handle_category_link(message):
-    if user_has_access.get(message.from_user.id):
-        bot.send_message(message.chat.id, 'Please enter the category link:',
-                         bot.register_next_step_handler(message=message, callback=export_category_results))
-    else:
-        bot.send_message(message.chat.id, 'Access denied! Please enter access code.',
-                         bot.register_next_step_handler(message=message, callback=handle_access_code))
-        
-@bot.message_handler(commands=['session_id'])
-def handle_session_id(message):
-    if user_has_access.get(message.from_user.id):
-        bot.send_message(message.chat.id, 'Please enter the session id:',
-                         bot.register_next_step_handler(message=message, callback=export_session_results))
-    else:
-        bot.send_message(message.chat.id, 'Access denied! Please enter access code.',
-                         bot.register_next_step_handler(message=message, callback=handle_access_code))
-
-
 def export_history_results(message):
     product_url = message.text
     opts = Namespace(url=product_url)
@@ -232,13 +213,11 @@ def export_history_results(message):
     history_exporter.init()
     history_exporter.logger = logging.getLogger(name=HistoryExporter.__name__)
     history_exporter.settings = project_settings
-    
+
     d = task.deferLater(reactor, 0, history_exporter.execute, None, opts)
     bot.send_message(message.chat.id, f'Exporting history results...')
     d.addCallback(lambda _: history_exporter.callback_filepath())
     d.addCallback(lambda file_path: send_file(message, file_path))
-
-
 
 
 def export_category_results(message):
@@ -277,7 +256,6 @@ def send_file(message, file_path):
     except:
         bot.send_message(message.chat.id, "File wasn't created, try send correct query")
 
-    bot.send_message(message.chat.id, 'Exporting category results...')
 
 def start_bot():
     threading.Thread(target=bot.polling, kwargs={'none_stop': True}).start()
