@@ -7,7 +7,7 @@ from sqlalchemy import select
 from commands.abstract import CSVExporter
 from database.models import *
 
-class NewExporter(CSVExporter):
+class CategoryExporter(CSVExporter):
     filename_prefix = 'category'
     def init(self):
         super().init()
@@ -34,7 +34,7 @@ class NewExporter(CSVExporter):
 
     def select_results(self):
         stmt = select([ProductTargets]
-        ).where(ProductTargets.category == 'https://www.viking-direct.co.uk/en/archive-storage-c-110/storage-solutions-c-11001'
+        ).where(ProductTargets.category == self.category
         ).order_by(ProductTargets.position)
 
         return stmt
@@ -48,7 +48,7 @@ class NewExporter(CSVExporter):
             postfix = self.filename_postfix
         if extension is None:
             extension = self.file_extension
-        export_path = path.join(path.abspath('..'), 'storage')
+        export_path = path.join(path.abspath(self.project_setting.get("STORAGE_PATH")), 'export')
         file_name = f'{prefix}_{datetime.datetime.now().strftime(timestamp_format)}{postfix}.{extension}'
         return path.join(export_path, file_name)
 
