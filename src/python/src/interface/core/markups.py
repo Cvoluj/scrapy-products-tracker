@@ -50,8 +50,9 @@ def main_menu():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     upload_button = types.KeyboardButton(text='/upload')
     download_button = types.KeyboardButton(text='/download')
+    tracking_button = types.KeyboardButton(text='/tracker')
     back = types.KeyboardButton(text='/back')
-    markup.add(upload_button, download_button, back)
+    markup.add(upload_button, download_button,tracking_button, back)
     return markup
 
 
@@ -74,7 +75,7 @@ def get_results_markup():
     return markup
 
 
-def sessions_markup():
+def tracker_markup():
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     start_tracking = types.KeyboardButton(text='start_tracking')
     stop_tracking = types.KeyboardButton(text='stop_tracking')
