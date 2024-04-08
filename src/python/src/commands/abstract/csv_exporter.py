@@ -100,6 +100,7 @@ class CSVExporter(BaseCommand):
         self.file_path = self.get_file_path()
         d = self.conn.runInteraction(self.get_interaction)
         d.addCallback(self.process_export)
+        return d
 
     def get_file_path(self, timestamp_format=None, prefix=None, postfix=None, extension=None):
         """
@@ -116,6 +117,9 @@ class CSVExporter(BaseCommand):
         export_path = path.join(path.abspath('../../../../storage/'), 'export')
         file_name = f'{prefix}{datetime.datetime.now().strftime(timestamp_format)}{postfix}.{extension}'
         return path.join(export_path, file_name)
+    
+    def callback_filepath(self):
+        return self.file_path
 
     def run(self, args: list[str], opts: Namespace):
         reactor.callLater(0, self.execute, args, opts)
