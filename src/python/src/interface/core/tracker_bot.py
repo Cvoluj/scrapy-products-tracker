@@ -1,11 +1,13 @@
+import logging
+import telebot, threading, re, os
+from argparse import Namespace
+from twisted.internet import reactor, task     
 from scrapy.utils.project import get_project_settings
-from commands.exporter import SessionExporter, HistoryExporter, CategoryExporter
+
+from utils import CSVDatabase
 from interface.core.markups import *
 from database.models import ProductTargets, CategoryTargets
-from utils import CSVDatabase
-from argparse import Namespace
-import logging
-
+from commands.exporter import SessionExporter, HistoryExporter, CategoryExporter
 
 project_settings = get_project_settings()
 bot = telebot.TeleBot(project_settings.get("BOT_TOKEN"))
@@ -135,7 +137,7 @@ def handle_csv_file(message, upload_prefix, bot):
         bot.reply_to(message.chat.id, "Please upload a CSV file.")
 
 
-@bot.message_handler(commands=['category-link'])
+@bot.message_handler(commands=['category_link'])
 def handle_category_link(message):
     if user_has_access.get(message.from_user.id):
         bot.send_message(message.chat.id, 'Please enter the category link:',
@@ -143,6 +145,52 @@ def handle_category_link(message):
     else:
         bot.send_message(message.chat.id, 'Access denied! Please enter access code.',
                          bot.register_next_step_handler(message=message, callback=handle_access_code))
+        
+
+@bot.message_handler(commands=['product_link'])
+def handle_history_link(message):
+    if user_has_access.get(message.from_user.id):
+        bot.send_message(message.chat.id, 'Please enter the product link, to get history:',
+                         bot.register_next_step_handler(message=message, callback=export_history_results))
+    else:
+        bot.send_message(message.chat.id, 'Access denied! Please enter access code.',
+                         bot.register_next_step_handler(message=message, callback=handle_access_code))
+        
+
+@bot.message_handler(commands=['category_link'])
+def handle_category_link(message):
+    if user_has_access.get(message.from_user.id):
+        bot.send_message(message.chat.id, 'Please enter the category link:',
+                         bot.register_next_step_handler(message=message, callback=export_category_results))
+    else:
+        bot.send_message(message.chat.id, 'Access denied! Please enter access code.',
+                         bot.register_next_step_handler(message=message, callback=handle_access_code))
+        
+@bot.message_handler(commands=['session_id'])
+def handle_session_id(message):
+    if user_has_access.get(message.from_user.id):
+        bot.send_message(message.chat.id, 'Please enter the session id:',
+                         bot.register_next_step_handler(message=message, callback=export_session_results))
+    else:
+        bot.send_message(message.chat.id, 'Access denied! Please enter access code.',
+                         bot.register_next_step_handler(message=message, callback=handle_access_code))
+
+
+def export_history_results(message):
+    product_url = message.text
+    opts = Namespace(url=product_url)
+
+    history_exporter = HistoryExporter()
+    history_exporter.init()
+    history_exporter.logger = logging.getLogger(name=HistoryExporter.__name__)
+    history_exporter.settings = project_settings
+    
+    d = task.deferLater(reactor, 0, history_exporter.execute, None, opts)
+    bot.send_message(message.chat.id, f'Exporting history results...')
+    d.addCallback(lambda _: history_exporter.callback_filepath())
+    d.addCallback(lambda file_path: send_file(message, file_path))
+
+
 
 
 def export_category_results(message):
@@ -153,9 +201,33 @@ def export_category_results(message):
     category_exporter.init()
     category_exporter.logger = logging.getLogger(name=CategoryExporter.__name__)
     category_exporter.settings = project_settings
-    reactor.callInThread(category_exporter.execute, None, opts)
 
-    bot.send_message(message.chat.id, 'Exporting category results...')
+    d = task.deferLater(reactor, 0, category_exporter.execute, None, opts)
+    bot.send_message(message.chat.id, f'Exporting category results...')
+    d.addCallback(lambda _: category_exporter.callback_filepath())
+    d.addCallback(lambda file_path: send_file(message, file_path))
+
+def export_session_results(message):
+    session_id = int(message.text)
+    opts = Namespace(session=session_id)
+
+    session_exporter = SessionExporter()
+    session_exporter.init()
+    session_exporter.logger = logging.getLogger(name=CategoryExporter.__name__)
+    session_exporter.settings = project_settings
+
+    d = task.deferLater(reactor, 0, session_exporter.execute, None, opts)
+    bot.send_message(message.chat.id, f'Exporting session results...')
+    d.addCallback(lambda _: session_exporter.callback_filepath())
+    d.addCallback(lambda file_path: send_file(message, file_path))
+
+
+def send_file(message, file_path):
+    try:
+        with open(file_path, 'rb') as file:
+            bot.send_document(chat_id=message.chat.id, document=file)
+    except:
+        bot.send_message(message.chat.id, "File wasn't created, try send correct query")
 
 
 def start_bot():

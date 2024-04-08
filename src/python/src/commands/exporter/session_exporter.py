@@ -34,7 +34,6 @@ class SessionExporter(CSVExporter):
 
     def select_results(self):
         stmt = select([
-                ProductHistory.product_id.label('id'),
                 ProductTargets.url,
                 ProductTargets.title,
                 ProductTargets.brand,
@@ -46,10 +45,6 @@ class SessionExporter(CSVExporter):
                 ProductHistory.stock,
                 ProductTargets.additional_info,
                 ProductTargets.description,
-                ProductTargets.image_url,
-                ProductTargets.image_file,
-                ProductHistory.created_at.label('history_created_at'),
-                ProductTargets.created_at.label('product_created_at')
             ]).select_from(ProductHistory.__table__.join(ProductTargets)).where(ProductHistory.session == self.session)
         return stmt
 

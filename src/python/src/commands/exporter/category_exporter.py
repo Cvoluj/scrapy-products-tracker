@@ -33,7 +33,7 @@ class CategoryExporter(CSVExporter):
         return category
 
     def select_results(self):
-        stmt = select([ProductTargets]
+        stmt = select([ProductTargets.position, ]
         ).where(ProductTargets.category == self.category
         ).order_by(ProductTargets.position)
 
