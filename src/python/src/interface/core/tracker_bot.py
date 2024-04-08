@@ -177,67 +177,73 @@ def tracker_menu(message):
 
 @bot.message_handler(content_types=["text"])
 def handle_text_commands(message):
-    global user_has_upload_files
     global product_tracker
     global category_tracker
-    match message.text:
-        case "start_tracking":
-            bot.send_message(message.chat.id, f"Tracking has been started")
+    user_id = message.from_user.id
+    product_file = user_has_upload_files.get(message.from_user.id, {}).get('product')
+    category_file = user_has_upload_files.get(message.from_user.id, {}).get('category')
 
-            product_file = user_has_upload_files[message.from_user.id].get('product')
-            category_file = user_has_upload_files[message.from_user.id].get('category')
+    if user_has_access.get(user_id):
+        match message.text, is_tracking_started.get(user_id):
+            case "start_tracking", None:
+                bot.send_message(message.chat.id, f"Tracking has been started")
 
-            
-            if product_file:
-                opts_product = Namespace(model='ProductTargets')
-                
-                product_tracker = StartTracking()
-                product_tracker.settings = project_settings
-                product_tracker.init()
-                product_tracker.logger = logging.getLogger(name=StartTracking.__name__)
+                if product_file:
+                    opts_product = Namespace(model='ProductTargets')
 
-                product_tracker.execute(None, opts_product)
-            if category_file:
-                opts_category = Namespace(model='CategoryTargets')
+                    product_tracker = StartTracking()
+                    product_tracker.settings = project_settings
+                    product_tracker.init()
+                    product_tracker.logger = logging.getLogger(name=StartTracking.__name__)
 
-                category_tracker = StartTracking()
-                category_tracker.settings = project_settings
-                category_tracker.init()
-                category_tracker.logger = logging.getLogger(name=StartTracking.__name__)
+                    product_tracker.execute(None, opts_product)
+                if category_file:
+                    opts_category = Namespace(model='CategoryTargets')
 
-                category_tracker.execute(None, opts_category)
-            
-        case "stop_tracking":
-            bot.send_message(message.chat.id, f"stop_tracking {user_has_upload_files}")
+                    category_tracker = StartTracking()
+                    category_tracker.settings = project_settings
+                    category_tracker.init()
+                    category_tracker.logger = logging.getLogger(name=StartTracking.__name__)
 
-            product_file = user_has_upload_files[message.from_user.id].get('product')
-            category_file = user_has_upload_files[message.from_user.id].get('category')
+                    category_tracker.execute(None, opts_category)
+                is_tracking_started[user_id] = True
 
-            if product_file:
-                opts_product = Namespace(model='ProductTargets', csv_file=product_file)
+            case "stop_tracking", True:
+                bot.send_message(message.chat.id, f"stop_tracking {user_has_upload_files}")
 
-                product_tracker.stop()
+                if product_file:
+                    opts_product = Namespace(model='ProductTargets', csv_file=product_file)
 
-                product_disabler = StopTracking()
-                product_disabler.settings = project_settings
-                product_disabler.init()
-                product_disabler.logger = logging.getLogger(name=StopTracking.__name__)
+                    product_tracker.stop()
 
-                product_disabler.execute(None, opts_product)
-            if category_file:
-                opts_category = Namespace(model='CategoryTargets', csv_file=category_file)
+                    product_disabler = StopTracking()
+                    product_disabler.settings = project_settings
+                    product_disabler.init()
+                    product_disabler.logger = logging.getLogger(name=StopTracking.__name__)
 
- 
-                category_tracker.stop()
+                    product_disabler.execute(None, opts_product)
+                if category_file:
+                    opts_category = Namespace(model='CategoryTargets', csv_file=category_file)
 
+                    category_tracker.stop()
 
-                category_disabler = StopTracking()
-                category_disabler.settings = project_settings
-                category_disabler.init()
-                category_disabler.logger = logging.getLogger(name=StopTracking.__name__)
+                    category_disabler = StopTracking()
+                    category_disabler.settings = project_settings
+                    category_disabler.init()
+                    category_disabler.logger = logging.getLogger(name=StopTracking.__name__)
 
-                category_disabler.execute(None, opts_category)
+                    category_disabler.execute(None, opts_category)
+                is_tracking_started[user_id] = None
 
+            case "start_tracking", True:
+                bot.send_message(message.chat.id, "Tracking has been already activated")
+
+            case "stop_tracking", None:
+                bot.send_message(message.chat.id, "Tracking has been already stopped")
+
+    else:
+        bot.send_message(message.chat.id, 'Access denied! Please enter access code.')
+        bot.register_next_step_handler(message=message, callback=handle_access_code)
 
 def handle_access_code(message):
     if message:
