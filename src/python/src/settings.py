@@ -4,17 +4,31 @@ import os
 from datetime import datetime, timedelta
 from distutils.util import strtobool
 from typing import Dict
+import json
 
 from dotenv import load_dotenv
 from scrapy.utils.log import configure_logging
 
 load_dotenv()
 
-BOT_NAME = "YOUR_PROJECT_NAME"
+BOT_NAME = "s1_products_tracker"
 
 SPIDER_MODULES = ["spiders"]
 NEWSPIDER_MODULE = "spiders"
 COMMANDS_MODULE = "commands"
+
+STORAGE_PATH = os.getenv("STORAGE_PATH", '../../../../storage/')
+IMAGES_STORE = STORAGE_PATH + os.getenv("IMAGES_STORE", 'images')
+EXPORT_STORAGE = STORAGE_PATH + 'export'
+
+ZORO_SPIDER_API_KEY = os.getenv("ZORO_SPIDER_API_KEY", "")
+CUSTOMINK_SPIDER_API_KEY = os.getenv("CUSTOMINK_SPIDER_API_KEY", "")
+CUSTOMINK_SPIDER_APPLICATION_ID = os.getenv("CUSTOMINK_SPIDER_APPLICATION_ID", "")
+
+SESSION_INTERVAL = os.getenv("SESSION_INTERVAL", "120")
+
+CATEGORY_FILE = STORAGE_PATH + os.getenv("CATEGORY_FILE", 'categories.csv')
+PRODUCTS_FILE = STORAGE_PATH + os.getenv("PRODUCTS_FILE", 'products.csv')
 
 PROXY = os.getenv("PROXY", "")
 PROXY_AUTH = os.getenv("PROXY_AUTH", "")
@@ -42,6 +56,7 @@ ROTATING_PROXIES_DOWNLOADER_HANDLER_AUTO_CLOSE_CACHED_CONNECTIONS_ENABLED: bool 
 DOWNLOADER_MIDDLEWARES = {
     "scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware": None,
     "middlewares.HttpProxyMiddleware": 543,
+    "middlewares.RetryMiddleware": 544,
 }
 
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO")
@@ -54,6 +69,21 @@ DB_PORT = int(os.getenv("DB_PORT", "3306"))
 DB_USERNAME = os.getenv("DB_USERNAME", "root")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "")
 DB_DATABASE = os.getenv("DB_DATABASE", "db_name")
+
+
+# This dict is used by CSVProducer and inherited from him classes
+# DOMAIN_QUEUE_MAP = {
+#       "www.zoro.com": "zoro",
+#       <website_domain>: <website_task_prefix>,
+#   }
+DOMAINS = os.getenv("DOMAINS", "").split(",")
+RMQ_DOMAIN_QUEUE_MAP = {domain: domain.split('.')[1] for domain in DOMAINS if domain}
+RMQ_UNMAPPED_DOMAIN_QUEUE = os.getenv("RMQ_UNMAPPED_DOMAIN_QUEUE", "unmapped_domain")
+RMQ_CATEGORY_REPLY_QUEUE = os.getenv("RMQ_CATEGORY_REPLY_QUEUE", "category_reply_queue")
+RMQ_CATEGORY_RESULT_QUEUE = os.getenv("RMQ_CATEGORY_RESULT_QUEUE", "category_result_queue")
+RMQ_PRODUCT_REPLY_QUEUE = os.getenv("RMQ_PRODUCT_REPLY_QUEUE", "product_reply_queue")
+RMQ_PRODUCT_RESULT_QUEUE = os.getenv("RMQ_PRODUCT_RESULT_QUEUE", "result_queue")
+
 
 PIKA_LOG_LEVEL = os.getenv("PIKA_LOG_LEVEL", "WARN")
 logging.getLogger("pika").setLevel(PIKA_LOG_LEVEL)

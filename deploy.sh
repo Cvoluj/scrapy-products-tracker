@@ -21,18 +21,18 @@ ln -s "$1/.env" .env
 ln -s "$1/.env" src/python/src/.env
 ln -s "$1/logs" src/python/src
 # typescript required (comment if redundant)
-ln -s "$1/.env" src/typescript/src/.env
-ln -s "$1/logs" src/typescript/src
+#ln -s "$1/.env" src/typescript/src/.env
+#ln -s "$1/logs" src/typescript/src
 
 # install dependencies
 # python
 cd "$release_dir/src/python/src"
-python3.8 -m poetry install
-python3.8 -m poetry run alembic upgrade head
+python3 -m poetry install
+python3 -m poetry run alembic upgrade head
 # typescript
-cd "$release_dir/src/typescript/src"
-npm install
-npm run fbuild
+#cd "$release_dir/src/typescript/src"
+#npm install
+#npm run fbuild
 
 # linking latest release
 rm -rf "$latest_release_dir"
@@ -47,9 +47,9 @@ cd "$release_dir/src/python/src"
 pm2 start pm2.config.js
 pm2 save
 # typescript (comment if redundant)
-cd "$release_dir/src/typescript/src"
-pm2 start pm2.config.js
-pm2 save
+#cd "$release_dir/src/typescript/src"
+#pm2 start pm2.config.js
+#pm2 save
 
 # cleanup (remove old releases)
 cd "$1/releases"
