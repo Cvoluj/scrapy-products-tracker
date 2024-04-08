@@ -84,7 +84,7 @@ class CustominkProductsSpider(TaskToMultipleResultsSpider):
         item["description"] = data_json.get("description")
         item["brand"] = data_json.get("brand", {}).get("name")
         item["image_url"] = urlparse(unquote(data_json.get("image"))).path.lstrip('/')
-        item["image_file"] = f'{item["url"].split("/")[2].split(".")[1]}_{item["url"].split("/")[-1]}.jpg'
+        item["image_file"] = f'{item["url"].split("/")[2].split(".")[1]}_{item["url"].split("/")[-1].replace("?", "_")}.jpg'
         item["current_price"] = float(data_json.get("offers", {}).get("price").replace(",", ""))
         item["units"] = f'Per {data_json.get("offers", {}).get("eligibleQuantity", {}).get("value")} items'
         item["regular_price"] = item["current_price"]

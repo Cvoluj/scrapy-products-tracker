@@ -1,6 +1,5 @@
 from sqlalchemy import select, update
 from rmq.utils import TaskStatusCodes
-
 from commands import CSVProducer
 from database.models import CategoryTargets
 
@@ -15,6 +14,15 @@ class CSVCategoryProducer(CSVProducer):
     _DEFAULT_DELAY_TIMEOUT = 3
 
     def __init__(self):
+        """
+        Initialize the CSVCategoryProducer.
+
+        This sets the attributes using project_settings.
+
+        Returns:
+            None
+        """
+
         super().__init__()
         self.csv_file = self.project_settings.get("CATEGORY_FILE")
         self.domain_queue_map = {domain: f'{queue}_category_task_queue' for domain, queue in self.domain_queue_map.items()}
