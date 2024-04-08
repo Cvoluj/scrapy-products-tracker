@@ -1,12 +1,15 @@
 from scrapy.utils.project import get_project_settings
-from markups import *
-
+from utils import CSVDatabase
+from database.models import ProductTargets, CategoryTargets
+from interface.core.markups import *
+from twisted.internet import reactor
+import telebot
+import threading
 
 project_settings = get_project_settings()
 bot = telebot.TeleBot(project_settings.get("BOT_TOKEN"))
 access_code = project_settings.get("ACCESS_CODE")
 is_user_access = {}
-
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -56,14 +59,14 @@ def upload(message):
 @bot.message_handler(commands=['categories'])
 def categories_upload(message):
     bot.send_message(message.chat.id, 'Please upload a CSV file with categories',
-                     bot.register_next_step_handler(message=message, callback=handle_csv_file,
+                     bot.register_next_step_handler(message=message, callback=handle_csv_file, bot=bot,
                                                     upload_prefix='CategoryTargets'))
 
 
 @bot.message_handler(commands=['products'])
 def products_upload(message):
     bot.send_message(message.chat.id, 'Please upload a CSV file with products',
-                     bot.register_next_step_handler(message=message, callback=handle_csv_file,
+                     bot.register_next_step_handler(message=message, callback=handle_csv_file, bot=bot,
                                                     upload_prefix='ProductTargets'))
 
 
@@ -96,18 +99,32 @@ def handle_access_code(message):
             bot.send_message(message.chat.id, "Incorrect code!")
 
 
-def handle_csv_file(message, upload_prefix):
+
+def handle_csv_file(message, upload_prefix, bot):
     if message.document.mime_type == 'text/csv':
-        # Download the CSV file
+
         file_info = bot.get_file(message.document.file_id)
-        # downloaded_file = bot.download_file(file_info.file_path)
-        # Save the CSV file
-        # file_path = f'uploads/{message.document.file_name}'
-        # with open(file_path, 'wb') as new_file:
-        #     new_file.write(downloaded_file)
-        bot.send_message(message.chat.id, f'Saved!{upload_prefix}')
+        downloaded_file = bot.download_file(file_info.file_path)
+        
+        file_name = message.document.file_name
+        file_path = f'../../../../storage/{file_name}'
+
+        if upload_prefix == "ProductTargets":
+            model = ProductTargets
+        else:
+            model = CategoryTargets
+
+        csv_reader = CSVDatabase(file_path, model)
+        csv_reader.insert_from_csv()
+
+        with open(file_path, 'wb') as new_file:
+            new_file.write(downloaded_file)
+        bot.send_message(message.chat.id, f'Saved! {upload_prefix}')
     else:
         bot.reply_to(message.chat.id, "Please upload a CSV file.")
 
+def start_bot():
+    threading.Thread(target=bot.polling, kwargs={'none_stop': True}).start()
+    reactor.run()
 
-bot.polling(none_stop=True)
+start_bot()

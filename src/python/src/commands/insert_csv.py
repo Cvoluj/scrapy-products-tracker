@@ -1,7 +1,9 @@
+import logging
 from argparse import Namespace
 from scrapy.commands import ScrapyCommand
 from twisted.internet import reactor
 from twisted.internet.defer import Deferred
+from scrapy.utils.project import get_project_settings
 
 from commands.base import BaseCommand
 from utils import CSVDatabase
@@ -13,6 +15,12 @@ class InsertCSV(BaseCommand):
     scrapy insert_csv --model=ProductTargets --file=csv_file.csv
     """
     
+    def _init(self):
+        self.settings = get_project_settings()
+
+        if not getattr(self, "logger", None):
+            self.logger = logging.getLogger(name=self.__class__.__name__)
+
     def init(self):
         self.model = None
         self.csv_file = None
@@ -68,7 +76,6 @@ class InsertCSV(BaseCommand):
     def __execute(self, args: list, opts: list) -> Deferred:
         d = self.execute(args, opts)
         d.addErrback(self.errback)
-        d.addBoth(lambda _: reactor.stop())
         return d
     
     def errback(self, failure):
