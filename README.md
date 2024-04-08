@@ -1,64 +1,50 @@
-# scrapy-boilerplate
+# Products Tracker
 
-This is a boilerplate for new Scrapy projects.
+## Overview
+Products Tracker is an advanced service designed for tracking and storing detailed product data across multiple online retailers. This tool is ideal for anyone needing insights into the price dynamics, availability, and other essential data points of products listed on platforms like Zoro, Quill, Costco, CustomInk, and Viking Direct UK.
 
-*The project is a WIP, so expect major changes and additions (mostly latter).
-Master branch is to be considered as always ready to use, with major changes/features introduced in feature branches.*
+## Key Features
+- **Process Management:** Leverages pm2 for efficient process management, ensuring stability and scalability.
+- **Flexible Configuration:** Easily configurable via environment variables or a `.env` file, allowing for quick adjustments and setup.
+- **Scalability:** Designed with extensibility in mind, making it simple to add new spiders for additional websites.
+- **Deployment Ready:** Comes with detailed deployment instructions for various environments, ensuring a smooth rollout to production.
 
-## Features
+## Installation Requirements
+Before starting, ensure your system meets the following requirements:
+- Python 3.11 or newer
+- Poetry for Python dependency management
+- Docker, for container management of MySQL and RabbitMQ
+- Node.js, for running pm2
 
-- Python 3.11+
-- [Poetry](https://github.com/python-poetry/poetry) for dependency management
-- SQLAlchemy ORM with alembic migrations
-- RabbitMQ integrated via [pika](https://github.com/pika/pika/)
-- configuration via ENV variables and/or `.env` file
-- single file for each class
-- Docker-ready (see [here](#docker))
-- PM2-ready
-- supports single-IP/rotating proxy config out of the box (see [here](#proxy-middleware))
+### Installation Steps
+1. **Repository Setup:** Clone the repository to your local system.
+2. **Environment Configuration:** Copy the `.env.example` file to `.env` and configure it according to your needs.
+3. **Dependency Installation:** Inside `src/python/src`, run `poetry install` to install Python dependencies.
+4. **Virtual Environment:** Activate the Poetry virtual environment using `poetry shell`.
+5. **Scrapy:** Ensure Scrapy is available and working within the virtual environment.
+6. **Docker Containers:** Utilize `docker-compose.yml` to start MySQL and RabbitMQ services.
+7. **CSV Preparation:** Place your CSV files with categories or product links in the designated project directory.
+8. **Process Management:** Use pm2 to start the tracking session, ensuring both category and product files are supported.
 
-## Installation
+## Configuration Details
+- **API Keys and IDs:** For each supported website, specific API keys and Application IDs must be configured to enable scraping.
+- **Session Interval:** Defines the interval between scraping sessions to avoid excessive load on the target websites.
+- **Storage Paths:** Specifies where the scraped data, including images and CSV files, will be stored.
+- **Supported Domains:** A list of domains that the tracker is configured to scrape data from.
 
-### Python Quickstart Guide
-To create and run a new Scrapy project using this boilerplate, you need to:
+## CSV File Format
+The tracker uses CSV files for input, specifying either category URLs or direct product links. An example format is provided to guide the preparation of these files.
 
-1. Clone the repository.
-2. `cp .env.example .env`
-3. No docker:
-   1. Have the following prerequisites: python 3.11+, poetry, mysqlclient libraries, etc
-   2. `cd src/python/src`
-   3. `poetry install`
-   4. `poetry shell`
-   5. `scrapy`
-4. Docker:
-   1. Have the following prerequisites: docker, docker-compose
-   2. `docker compose up -d database python`
-   3. `docker compose exec python bash`
-   4. `cd /var/app/python/src/`
-   5. `poetry shell`
-   6. `scrapy`
+## Deployment Procedure
+Deployment involves a series of steps designed to automate the rollout process using GitLab CI/CD and Paramiko for SSH operations. Key aspects include:
+- **CI/CD Variables:** Properly configuring GitLab CI variables for secure and efficient deployment.
+- **Remote Server Preparation:** Setting up directories and permissions on the target server to accommodate the tracker.
+- **Deployment Script:** A script that automates the deployment process, including code delivery, dependency management, and cleanup of older deployments.
 
-### Docker
+### Deployment Quick Guide
+1. **Environment Variable Setup:** Ensure all necessary environment variables are correctly configured in the `.env` file.
+2. **CI/CD Configuration:** Set up CI/CD pipelines in GitLab, including runner connection and deployment branch specification.
+3. **Server Setup:** Prepare the target server with necessary directories, permissions, and environment configurations.
+4. **Monitor Deployments:** Automated deployments will trigger on commits to the specified branch, making deployment seamless and consistent.
 
-The project includes Dockerfiles and docker-compose configuration for running your spiders in containers.
-
-Also, a configuration for default RabbitMQ server is included.
-
-Dockerfiles are located inside the `docker` subdirectory, and the `docker-compose.yml` - at the root of the project.
-
-Docker-compose takes configuration values from ENV. Environment can also be provided by creating a `.env` file at the root of the project (see `.env.example` as a sample).
-
-### Proxy middleware
-
-A scrapy downloader middleware to use a proxy server is included in `src/middlewares/HttpProxyMiddleware.py` and is enabled by default. You can use it by providing proxy endpoint with the env variable (or in the `.env` file) `PROXY` in the format `host:port`. Proxy authentication can also be provided in the `PROXY_AUTH` variable, using the format `user:password`. If provided, it is encoded as a Basic HTTP Auth and put into `Proxy-Authorization` header.
-
-A single-endpoint proxy is used by default, assuming usage of rotating proxies service. If you want to provide your own list of proxies, an external package has to be used, as this use-case is not yet covered by this boilerplate.
-
-## File and folder structure
-
-This boilerplate offers a more intuitive alternative to Scrapy's default project structure. Here, file/directory structure is more flattened and re-arranged a bit.
-
-- All scrapy-related code is placed directly in `src/python/src` subdirectory (without any subdirs with project name, contrary to default).
-- All scrapy classes (by default located in `items.py, middlewares.py, pipelines.py`) are converted to sub-modules, where each class is placed in its own separate file. Nothing else goes into those files.
-- Configs in `scrapy.cfg` and `settings.py` are edited to correspond with these changes.
-- Additional subdirectories are added to contain code, related to working with database (`src/python/src/database`), RabbitMQ (`src/python/src/rmq`)
+This README aims to provide a concise yet comprehensive guide to setting up and deploying the Products Tracker. For further assistance, consult the detailed documentation or reach out to the development team.
