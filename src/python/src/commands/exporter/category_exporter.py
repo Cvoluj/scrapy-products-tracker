@@ -48,7 +48,7 @@ class CategoryExporter(CSVExporter):
             postfix = self.filename_postfix
         if extension is None:
             extension = self.file_extension
-        export_path = path.join(path.abspath('../../../../storage/'), 'export')
+        export_path = path.join(path.abspath(self.project_setting.get("STORAGE_PATH")), 'export')
         file_name = f'{prefix}_{datetime.datetime.now().strftime(timestamp_format)}{postfix}.{extension}'
         return path.join(export_path, file_name)
 
