@@ -1,17 +1,13 @@
 import json, functools, pika
 from argparse import Namespace
-from sqlalchemy import Table
-
 from rmq.commands import Producer
-from utils import CSVDatabase
-
 
 class DomainProducer(Producer):
     """
     This Producer inherits from base Producer, but changes logic of sending task with using domain_queue_map
     Notice, parameter `--task_queue` became unnecessary. `self.task_queue_name` is queue used for urls that
     our system doesn't support
-    
+
     Motivation of creating this class was adjust Producer to work with domain_queue_map
     """
     def __init__(self):
@@ -44,7 +40,7 @@ class DomainProducer(Producer):
 
     def _send_message(self, msg_body):
         """
-        all differences from parent class is `queue_name=self.get_queue_name(msg_body)` 
+        all differences from parent class is `queue_name=self.get_queue_name(msg_body)`
         """
         if not isinstance(msg_body, dict):
             raise ValueError("Built message body is not a dictionary")

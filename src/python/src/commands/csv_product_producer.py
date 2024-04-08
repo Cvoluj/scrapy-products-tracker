@@ -1,6 +1,5 @@
 from sqlalchemy import select, update
 from rmq.utils import TaskStatusCodes
-
 from commands import CSVProducer
 from database.models import ProductTargets
 
@@ -14,6 +13,15 @@ class CSVProductProducer(CSVProducer):
     model = ProductTargets
 
     def __init__(self):
+        """
+        Initialize the CSVProductProducer.
+
+        This sets the attributes using project_settings.
+
+        Returns:
+            None
+        """
+
         super().__init__()
         self.csv_file = self.project_settings.get("PRODUCTS_FILE")
         self.logger.warning(self.csv_file)

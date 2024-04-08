@@ -1,18 +1,14 @@
 import csv, datetime
 from os import path
-from datetime import date
 from argparse import Namespace
-from scrapy.commands import ScrapyCommand
 from twisted.internet import reactor
-from sqlalchemy import select
 from rmq.utils.sql_expressions import compile_expression
 from scrapy.utils.project import get_project_settings
 from typing import List, Dict
 from sqlalchemy.sql import ClauseElement
-
 from commands.base import BaseCommand
-from database.models import *
 from database.connection import get_db
+
 
 class CSVExporter(BaseCommand):
     """
@@ -30,13 +26,13 @@ class CSVExporter(BaseCommand):
 
     def init(self):
         self.conn = get_db()
-            
+
     def select_results(self):
         """
         This method must returns sqlalchemy Executable or string that represents valid raw SQL select query
         """
         raise NotImplementedError
-    
+
     def get_interaction(self, transaction):
         """If building task requires several queries to db or single query has extreme difficulty
         then this method could be overridden.
@@ -50,7 +46,7 @@ class CSVExporter(BaseCommand):
             transaction.execute(stmt)
 
         return transaction.fetchall()
-    
+
     def get_headers(self, row: Dict) -> None:
         """
         Get headers for csv file
@@ -82,10 +78,10 @@ class CSVExporter(BaseCommand):
             rows = self.map_columns(rows)
             self.get_headers(rows[0])
             self.save(rows)
-    
+
     def save(self, rows: List[Dict]) -> None:
         """
-        use context manager to create csv file, add results from interaction and 
+        use context manager to create csv file, add results from interaction and
         write header for file
         """
         with open(self.file_path, 'a', encoding='utf-8', newline='') as file:
@@ -97,10 +93,10 @@ class CSVExporter(BaseCommand):
             writer.writerows(rows)
         self.process_export(None)
 
-    def execute(self, args, opts: Namespace):    
+    def execute(self, args, opts: Namespace):
         """
-        prepare `self.file_path`, call `get_interaction`, 
-        on results call callback for processing export 
+        prepare `self.file_path`, call `get_interaction`,
+        on results call callback for processing export
         """
         self.file_path = self.get_file_path()
         d = self.conn.runInteraction(self.get_interaction)
