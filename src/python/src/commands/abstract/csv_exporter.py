@@ -6,6 +6,7 @@ from scrapy.commands import ScrapyCommand
 from twisted.internet import reactor
 from sqlalchemy import select
 from rmq.utils.sql_expressions import compile_expression
+from scrapy.utils.project import get_project_settings
 from typing import List, Dict
 from sqlalchemy.sql import ClauseElement
 
@@ -25,6 +26,7 @@ class CSVExporter(BaseCommand):
     new_mapping: Dict[str, str] = {}
     filename_prefix: str = ''
     filename_postfix: str = ''
+    project_setting = get_project_settings()
 
     def init(self):
         self.conn = get_db()
@@ -116,7 +118,7 @@ class CSVExporter(BaseCommand):
             postfix = self.filename_postfix
         if extension is None:
             extension = self.file_extension
-        export_path = path.join(path.abspath('..'), 'storage')
+        export_path = path.join(path.abspath(self.project_setting.get("STORAGE_PATH")), 'export')
         file_name = f'{prefix}{datetime.datetime.now().strftime(timestamp_format)}{postfix}.{extension}'
         return path.join(export_path, file_name)
 
