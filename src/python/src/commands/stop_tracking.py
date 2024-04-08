@@ -74,10 +74,6 @@ class StopTracking(BaseCommand):
         except Exception as e:
             self.loggerr.error("Error updating item: %s", e)
 
-    def repeat_session(self):
-        self.update_status()
-        self.logger.warning('STATUS WERE UPDATED')
-
     def run(self, args: list[str], opts: Namespace):
         reactor.callLater(0, self.execute, args, opts)
         reactor.run()

@@ -1,5 +1,5 @@
 import logging
-import telebot, threading, re, os
+import telebot, threading, re, os, gc
 from argparse import Namespace
 from twisted.internet import reactor, task
 from scrapy.utils.project import get_project_settings
@@ -8,6 +8,7 @@ from utils import CSVDatabase
 from interface.core.markups import *
 from database.models import ProductTargets, CategoryTargets
 from commands.exporter import SessionExporter, HistoryExporter, CategoryExporter
+from commands import StartTracking, StopTracking
 
 from twisted.internet import reactor
 import telebot
@@ -163,11 +164,66 @@ def handle_session_id(message):
 
 @bot.message_handler(content_types=["text"])
 def handle_text_commands(message):
+    global user_has_upload_files
+    global product_tracker
+    global category_tracker
     match message.text:
         case "start_tracking":
-            pass
+            bot.send_message(message.chat.id, f"Tracking has been started")
+
+            product_file = user_has_upload_files[message.from_user.id].get('product')
+            category_file = user_has_upload_files[message.from_user.id].get('category')
+
+            
+            if product_file:
+                opts_product = Namespace(model='ProductTargets')
+                
+                product_tracker = StartTracking()
+                product_tracker.settings = project_settings
+                product_tracker.init()
+                product_tracker.logger = logging.getLogger(name=StartTracking.__name__)
+
+                product_tracker.execute(None, opts_product)
+            if category_file:
+                opts_category = Namespace(model='CategoryTargets')
+
+                category_tracker = StartTracking()
+                category_tracker.settings = project_settings
+                category_tracker.init()
+                category_tracker.logger = logging.getLogger(name=StartTracking.__name__)
+
+                category_tracker.execute(None, opts_category)
+            
         case "stop_tracking":
-            pass
+            bot.send_message(message.chat.id, f"stop_tracking {user_has_upload_files}")
+
+            product_file = user_has_upload_files[message.from_user.id].get('product')
+            category_file = user_has_upload_files[message.from_user.id].get('category')
+
+            if product_file:
+                opts_product = Namespace(model='ProductTargets', csv_file=product_file)
+
+                product_tracker.stop()
+
+                product_disabler = StopTracking()
+                product_disabler.settings = project_settings
+                product_disabler.init()
+                product_disabler.logger = logging.getLogger(name=StopTracking.__name__)
+
+                product_disabler.execute(None, opts_product)
+            if category_file:
+                opts_category = Namespace(model='CategoryTargets', csv_file=category_file)
+
+ 
+                category_tracker.stop()
+
+
+                category_disabler = StopTracking()
+                category_disabler.settings = project_settings
+                category_disabler.init()
+                category_disabler.logger = logging.getLogger(name=StopTracking.__name__)
+
+                category_disabler.execute(None, opts_category)
 
 
 def handle_access_code(message):
@@ -192,12 +248,14 @@ def handle_csv_file(message, upload_prefix, bot):
 
         if upload_prefix == "ProductTargets":
             model = ProductTargets
+            key = 'product'
         else:
             model = CategoryTargets
+            key = 'category'
 
         csv_reader = CSVDatabase(file_path, model)
         reactor.callInThread(csv_reader.insert_from_csv)
-
+        user_has_upload_files[message.from_user.id][key] = file_path
         with open(file_path, 'wb') as new_file:
             new_file.write(downloaded_file)
         bot.send_message(message.chat.id, f'Saved! {upload_prefix}')
