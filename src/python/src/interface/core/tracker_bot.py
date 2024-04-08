@@ -21,6 +21,7 @@ access_code = project_settings.get("ACCESS_CODE")
 user_has_access = {}
 user_has_upload_files = {}
 is_tracking_started = {}
+sessions_dict = {}
 
 
 @bot.message_handler(commands=['start'])
@@ -115,22 +116,26 @@ def products_upload(message):
 @bot.message_handler(commands=['download'])
 def download(message):
     if user_has_access.get(message.from_user.id):
-        # сделать метод и достать из базы все текущие сессии. А также подсчитать сколько всего записей в таблицах
-        # product_targets, category_targets
-        number_of_sessions = 10
-        category_targets = 100
-        product_targets = 10000
         sessions = GetSessions()
         sessions.init()
         result = sessions.execute(None)
-        result.addCallback(lambda result: logging.warning(result))
-        # bot.send_message(message.chat.id, f'In this menu you can get the results of the sessions.\n'
-        #                                   f'We have currently completed:\n '
-        #                                   f'{number_of_sessions} sessions \n'
-        #                                   f'by {category_targets} categories \n'
-        #                                   f'with {product_targets} products \n'
-        #                                   f'You can get results by session number, product link, category link{result}',
-        #                  reply_markup=get_results_markup())
+
+        def send_products(msg):
+            product_sessions = "\n".join([str(item['id']) for item in msg if item['target'] == 'product'])
+            bot.send_message(message.chat.id, f"Session numbers by PRODUCT:\n{product_sessions}")
+            return msg
+
+        def send_categories(msg):
+            category_sessions = "\n".join([str(item['id']) for item in msg if item['target'] == 'category'])
+            bot.send_message(message.chat.id, f"Session numbers by CATEGORY:\n{category_sessions}")
+            return msg
+
+        result.addCallback(lambda result: send_products(result))
+        result.addCallback(lambda result: send_categories(result))
+        bot.send_message(message.chat.id, f'In this menu you can get the results.\n'
+                                          f'You can get results by session number, product link, category link',
+                         reply_markup=get_results_markup())
+
     else:
         bot.send_message(message.chat.id, 'access denied! Please, enter access code')
         bot.register_next_step_handler(message=message, callback=handle_access_code)
