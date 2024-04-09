@@ -1,6 +1,5 @@
 from sqlalchemy import select, update
 from rmq.utils import TaskStatusCodes
-
 from commands.abstract import DomainProducer
 from database.models import ProductTargets
 
@@ -14,6 +13,15 @@ class ProductProducer(DomainProducer):
     _DEFAULT_DELAY_TIMEOUT = 3
 
     def __init__(self):
+        """
+        Initialize the ProductProducer.
+
+        This sets the attributes using project_settings.
+
+        Returns:
+            None
+        """
+
         super().__init__()
         self.domain_queue_map = {domain: f'{queue}_products_task_queue' for domain, queue in self.domain_queue_map.items()}
         self.reply_to_queue_name = self.project_settings.get("RMQ_PRODUCT_REPLY_QUEUE")
