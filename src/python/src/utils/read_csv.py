@@ -36,6 +36,7 @@ class CSVDatabase:
         d = self.create_session()
         d.addCallback(lambda _: self.get_session())
         d.addCallback(lambda _: self.process_csv_with_session())
+        return d
         
     def process_csv_with_session(self):
         """
@@ -66,7 +67,8 @@ class CSVDatabase:
             stmt: Insert = insert(self.model)
             stmt = stmt.on_duplicate_key_update({
                 'status': TaskStatusCodes.NOT_PROCESSED,
-                'session': self.session_id
+                'session': self.session_id,
+                'is_tracked': 1,
             }).values(**values)
 
             self.conn.runQuery(*compile_expression(stmt))

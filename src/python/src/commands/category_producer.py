@@ -1,30 +1,20 @@
 from sqlalchemy import select, update
 from rmq.utils import TaskStatusCodes
-from commands import CSVProducer
+
+from commands.abstract import DomainProducer
 from database.models import CategoryTargets
 
 
-class CSVCategoryProducer(CSVProducer):
+class CSVCategoryProducer(DomainProducer):
     """
     Example of calling this command:
-    scrapy csv_category_producer --chunk_size=500 --mode=worker
+    scrapy category_producer --chunk_size=500 --mode=worker
     notice, --task_queue became unnecessary, because it already defined. But if you want you still can change it
     """
-    model = CategoryTargets
     _DEFAULT_DELAY_TIMEOUT = 3
 
     def __init__(self):
-        """
-        Initialize the CSVCategoryProducer.
-
-        This sets the attributes using project_settings.
-
-        Returns:
-            None
-        """
-
         super().__init__()
-        self.csv_file = self.project_settings.get("CATEGORY_FILE")
         self.domain_queue_map = {domain: f'{queue}_category_task_queue' for domain, queue in self.domain_queue_map.items()}
         self.reply_to_queue_name = self.project_settings.get("RMQ_CATEGORY_REPLY_QUEUE")
 

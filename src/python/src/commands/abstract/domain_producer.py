@@ -1,6 +1,8 @@
 import json, functools, pika
 from argparse import Namespace
+
 from rmq.commands import Producer
+
 
 class DomainProducer(Producer):
     """

@@ -50,4 +50,3 @@ class CategoryResultConsumer(Consumer):
         )
 
         return product_targets_stmt
-

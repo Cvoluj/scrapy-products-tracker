@@ -73,7 +73,7 @@ class CSVExporter(BaseCommand):
                 self.logger.warning(f'Export finished successfully to {path.basename(self.file_path)}.')
             else:
                 self.logger.warning('Nothing found')
-            reactor.stop()
+            # reactor.stop()
         else:
             rows = self.map_columns(rows)
             self.get_headers(rows[0])
@@ -101,6 +101,7 @@ class CSVExporter(BaseCommand):
         self.file_path = self.get_file_path()
         d = self.conn.runInteraction(self.get_interaction)
         d.addCallback(self.process_export)
+        return d
 
     def get_file_path(self, timestamp_format=None, prefix=None, postfix=None, extension=None):
         """
@@ -117,6 +118,9 @@ class CSVExporter(BaseCommand):
         export_path = path.join(path.abspath(self.project_setting.get("STORAGE_PATH")), 'export')
         file_name = f'{prefix}{datetime.datetime.now().strftime(timestamp_format)}{postfix}.{extension}'
         return path.join(export_path, file_name)
+    
+    def callback_filepath(self):
+        return self.file_path
 
     def run(self, args: list[str], opts: Namespace):
         reactor.callLater(0, self.execute, args, opts)

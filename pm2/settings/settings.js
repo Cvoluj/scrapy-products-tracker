@@ -24,13 +24,13 @@ let SCRAPY_SCRIPT = null;
 let NODEJS_SCRIPT = 'node';
 if (process.platform === 'win32') {
 //  Default:
-  PYTHON_INTERPRETER = path.join(PYTHON_CWD, '.venv', 'Scripts', 'python.exe');
-  SCRAPY_SCRIPT = path.join(PYTHON_CWD, '.venv', 'Scripts', 'scrapy.exe');
+//  PYTHON_INTERPRETER = path.join(PYTHON_CWD, '.venv', 'Scripts', 'python.exe');
+//  SCRAPY_SCRIPT = path.join(PYTHON_CWD, '.venv', 'Scripts', 'scrapy.exe');
 
 //  If the poetry virtualenv is not in the working directory:
 //  To find out where it is, enter it in the terminal: 'poetry env info', and change the lines below
-//PYTHON_INTERPRETER = 'C:\\Users\\User\\AppData\\Local\\pypoetry\\Cache\\virtualenvs\\products-tracker-LUQI7Gaj-py3.11\\Scripts\\python.exe';
-//SCRAPY_SCRIPT = 'C:\\Users\\User\\AppData\\Local\\pypoetry\\Cache\\virtualenvs\\products-tracker-LUQI7Gaj-py3.11\\Scripts\\scrapy.exe';
+PYTHON_INTERPRETER = 'C:\\Python_project\\products-tracker\\.v\\Scripts\\python.exe';
+SCRAPY_SCRIPT = 'C:\\Python_project\\products-tracker\\.v\\Scripts\\scrapy.exe';
 
 } else {
 //  Default:

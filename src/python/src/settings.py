@@ -122,3 +122,6 @@ if datetime(*[int(number) for number in USER_AGENT_RELEASE_DATE.split('-')]) + t
     logging.warning('USER_AGENT is outdated')
 
 REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
+
+BOT_TOKEN = os.getenv("BOT_TOKEN", "")
+ACCESS_CODE = os.getenv("ACCESS_CODE", "")
